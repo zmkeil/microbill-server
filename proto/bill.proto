@@ -1,0 +1,48 @@
+package microbill;
+option cc_generic_services = true;
+
+
+	message Record {
+		enum Type {
+			NEW = 0;
+			UPDATE = 1;
+		}
+		required Type	type = 1;
+		required string	id = 2;
+		required int32	year = 3;
+		required int32	month = 4;
+		optional int32	day = 5;
+		optional int32	pay_earn = 6;
+		optional string gay = 7;
+		optional string gay_address = 8;
+		optional string comments = 9;
+		optional int32	cost = 10;
+		optional string submitter = 11;
+		optional int32	submit_time = 12;
+		optional string	submit_address = 13;
+		optional int32	last_modify_time = 14;
+		optional string	last_modify_address = 15;
+		optional int32	is_deleted = 16;
+	}
+
+
+message BillRequest {
+	
+	required string 	gay = 1;
+
+	required int32 		records_count = 2;
+
+	repeated Record 	records = 3;
+}
+
+message BillResponse {
+	required bool		status = 1;
+	optional string		error_msg = 2;
+
+	optional int32		records_count = 3;
+	repeated Record		records = 4;
+}
+
+service BillService {
+	rpc update(BillRequest) returns (BillResponse);	
+}

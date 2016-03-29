@@ -1,0 +1,28 @@
+package microbill;
+
+message MysqlOptions {
+	required string host = 1;
+	required int32	port = 2;
+	required string db = 3;
+	required string user = 4;
+	required string passwd = 5;
+	optional string table = 6;
+}
+
+message UserOptions {
+	required string name = 1;
+	required string file_name = 2;
+	optional string key = 3;
+}
+
+message ServerOptions {
+	optional uint32 port = 1 [default = 8844];
+	optional bool	connection_reuse = 2 [default = true];
+	optional uint32 idle_time = 3 [default = 300]; // second
+}
+
+message MicroBillConfig {
+	required MysqlOptions mysql_options = 1;
+	repeated UserOptions  user_options = 2;
+	required ServerOptions server_options = 3;
+}
