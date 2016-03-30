@@ -1,0 +1,8 @@
+*.o
+*.pb.h
+*.pb.cc
+src/libmicrobill.a
+src/test/test_db_helper
+src/test/test_mysql_client
+src/test/test_pending_events
+src/test/test_user_manager
