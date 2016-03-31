@@ -6,3 +6,7 @@ src/test/test_db_helper
 src/test/test_mysql_client
 src/test/test_pending_events
 src/test/test_user_manager
+src/bill
+src/data
+src/logs
+src/test/client

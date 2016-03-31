@@ -5,11 +5,13 @@
 #include "pending_events.h"
 #include "ut_environment.h"
 
+UTEnvironment* env;
 int main(int argc, char** argv)
 {
     /*cases*/
     ::testing::InitGoogleTest(&argc, argv);
-	::testing::AddGlobalTestEnvironment(new UTEnvironment());
+	env = new UTEnvironment();
+	::testing::AddGlobalTestEnvironment(env);
     return RUN_ALL_TESTS();
 }
 
@@ -27,7 +29,7 @@ TEST(PendingEventsTest, test_pending_events_get)
 
 	// get record from DB with begin_index and max_line
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 	microbill::DBHelper db_helper(client);
 	::google::protobuf::RepeatedPtrField<microbill::Record> records;
 
@@ -93,7 +95,7 @@ TEST(PendingEventsTest, test_pending_events_set)
 	// then we can get the record from DB
 	// the data in DB is just for example
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 	microbill::DBHelper db_helper(client);
 
 	records.Clear();

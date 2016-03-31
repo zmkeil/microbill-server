@@ -5,23 +5,23 @@
 #include "user_manager.h"
 #include "ut_environment.h"
 
+UTEnvironment* env;
 int main(int argc, char** argv)
 {
     /*cases*/
     ::testing::InitGoogleTest(&argc, argv);
-	::testing::AddGlobalTestEnvironment(new UTEnvironment());
+	env = new UTEnvironment();
+	::testing::AddGlobalTestEnvironment(env);
     return RUN_ALL_TESTS();
 }
 
 TEST(UserManagerTest, test_user_manager_get_events_for_self)
 {
-	microbill::MicroBillConfig microbill_config;
-	ASSERT_TRUE(common::load_protobuf_config(&microbill_config));
 	microbill::UserManager user_manager;
-	ASSERT_TRUE(user_manager.init(microbill_config.user_options()));
+	ASSERT_TRUE(user_manager.init(env->microbill_config.user_options()));
 
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 	microbill::DBHelper db_helper(client);
 	::google::protobuf::RepeatedPtrField<microbill::Record> records;
 
@@ -37,10 +37,8 @@ TEST(UserManagerTest, test_user_manager_get_events_for_self)
 
 TEST(UserManagerTest, test_user_manager_set_events_for_others)
 {
-	microbill::MicroBillConfig microbill_config;
-	ASSERT_TRUE(common::load_protobuf_config(&microbill_config));
 	microbill::UserManager user_manager;
-	ASSERT_TRUE(user_manager.init(microbill_config.user_options()));
+	ASSERT_TRUE(user_manager.init(env->microbill_config.user_options()));
 
 	::google::protobuf::RepeatedPtrField<microbill::Record> records;
 	microbill::Record* record = records.Add();

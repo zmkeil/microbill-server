@@ -3,18 +3,20 @@
 #include "mysql_client.h"
 #include "ut_environment.h"
 
+UTEnvironment* env = NULL;
 int main(int argc, char** argv)
 {
     /*cases*/
     ::testing::InitGoogleTest(&argc, argv);
-	::testing::AddGlobalTestEnvironment(new UTEnvironment());
+	env = new UTEnvironment();
+	::testing::AddGlobalTestEnvironment(env);
     return RUN_ALL_TESTS();
 }
 
 TEST(MysqlClientTest, test_mysql_client_push_records)
 {
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 
 	microbill::RecordContent contents[2] = {{"zmkeil_2016_03_199", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},{"jxj_2016_03_333", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}};
 	std::vector<microbill::RecordContent> new_records;
@@ -56,12 +58,14 @@ TEST(MysqlClientTest, test_mysql_client_push_records)
 	ASSERT_TRUE(client->query_single_record("jxj_2016_03_333", &content));
 	ASSERT_EQ(35, content.cost);
 	ASSERT_STREQ("lunch", content.comments.c_str());
+
+	client->close();
 }
 
 TEST(MysqlClientTest, test_mysql_client_get_records)
 {
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 
 	std::vector<std::string> ids;
 	ids.push_back("zmkeil_2016_03_182");

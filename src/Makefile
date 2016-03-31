@@ -26,7 +26,18 @@ CPPFLAGS=-g \
 INCPATH=-I. \
   -I./include \
   -I../../../common/ \
+  -I../../../nrpc/output/include/ \
   -I../../../thirdsrc/gtest-1.7.0/include
+LIBPATH=-L. \
+  -L../../../thirdsrc/gtest-1.7.0/cmake-build \
+  -L../../../common \
+  -L../../../nrpc/output/lib/ \
+  -L/usr/local/lib \
+  -L/usr/lib64/mysql
+LDFLAGS=-lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlclient_r -lz -lngxrpc -lcommon
+
+
+######### files #########################################
 
 PROTO=../proto/bill \
 	  ../proto/bill_config
@@ -35,11 +46,13 @@ objs=pending_events.o \
 	 mysql_client.o \
 	 db_helper.o \
 	 user_manager.o \
+	 bill_service_impl.o \
+	 main.o \
 	 bill.pb.o \
 	 bill_config.pb.o
 
 .PHONY:all
-all:pb_c libmicrobill.a UT
+all:pb_c libmicrobill.a bill UT
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mall[0m']"
 	@echo "make all done"
 
@@ -48,6 +61,7 @@ clean:
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mclean[0m']"
 	rm -rf $(objs)
 	rm -rf libmicrobill.a
+	rm -rf bill
 	make -C test clean
 
 .PHONY:love
@@ -72,10 +86,13 @@ pb_c:
 		fi \
 	done
 
-libmicrobill.a:$(objs)
+libmicrobill.a:$(filter-out main.o, $(objs))
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mlibmicrobill.a[0m']"
-	ar rcs libmicrobill.a $(objs)
+	ar rcs libmicrobill.a $^
 
+bill:$(objs)
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mbill[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
 # obscure rules
 $(filter %.pb.o,$(objs)): %.o: %.cc

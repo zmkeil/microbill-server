@@ -4,18 +4,20 @@
 #include "db_helper.h"
 #include "ut_environment.h"
 
+UTEnvironment* env = NULL;
 int main(int argc, char** argv)
 {
     /*cases*/
     ::testing::InitGoogleTest(&argc, argv);
-	::testing::AddGlobalTestEnvironment(new UTEnvironment());
+	env = new UTEnvironment();
+	::testing::AddGlobalTestEnvironment(env);
     return RUN_ALL_TESTS();
 }
 
 TEST(DBHelperTest, test_db_helper_get_records)
 {
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 	microbill::DBHelper db_helper(client);
 
 	microbill::Record* record = NULL;
@@ -29,15 +31,21 @@ TEST(DBHelperTest, test_db_helper_get_records)
 	record = updated_records.Add();
 	record->set_id("zz_2016_03_12");
 	record->set_type(microbill::Record::UPDATE);
+	ids.push_back("jxj_2016_03_32");
+	record = updated_records.Add();
+	record->set_id("jxj_2016_03_32");
+	record->set_type(microbill::Record::UPDATE);
 
 	ASSERT_TRUE(db_helper.get_records_by_id_list(ids, &updated_records)); 
-	ASSERT_EQ(2, updated_records.size());
+	ASSERT_EQ(3, updated_records.size());
 	
 	const microbill::Record& first = updated_records.Get(0);
 	const microbill::Record& second = updated_records.Get(1);
+	const microbill::Record& third = updated_records.Get(2);
 
-	ASSERT_FALSE(second.has_year());
 	ASSERT_TRUE(first.has_year());
+	ASSERT_FALSE(second.has_year());
+	ASSERT_TRUE(third.has_year());
 
 	ASSERT_STREQ("zmkeil_2016_03_182", first.id().c_str());
 	ASSERT_EQ(2016, first.year());
@@ -49,13 +57,16 @@ TEST(DBHelperTest, test_db_helper_get_records)
 	ASSERT_EQ(2200, first.cost());
 	ASSERT_EQ(0, first.is_deleted());
 
+	ASSERT_EQ(328, third.cost());
+	ASSERT_STREQ("buy shoes", third.comments().c_str());
+
 	client->close();
 }
 
 TEST(DBHelperTest, test_db_helper_push_records)
 {
 	microbill::MysqlClient* client = new microbill::MysqlClient();
-	ASSERT_TRUE(client->init());
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 	microbill::DBHelper db_helper(client);
 
 	microbill::RecordContent content;

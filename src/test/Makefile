@@ -27,10 +27,12 @@ INCPATH=-I. \
   -I./include \
   -I../ \
   -I../../../../thirdsrc/gtest-1.7.0/include \
+  -I../../../../nrpc/output/include/ \
   -I../../../../common
 LIBPATH=-L. \
   -L../ \
   -L../../../../thirdsrc/gtest-1.7.0/cmake-build \
+  -L../../../../nrpc/output/lib/ \
   -L../../../../common \
   -L/usr/local/lib \
   -L/usr/lib64/mysql
@@ -46,12 +48,14 @@ PROTO=
 objs=test_pending_events.o \
 	 test_mysql_client.o \
 	 test_db_helper.o \
-	 test_user_manager.o
+	 test_user_manager.o \
+	 client.o
 
 testbin=test_pending_events \
 		test_mysql_client \
 		test_db_helper \
-		test_user_manager
+		test_user_manager \
+		client
 
 .PHONY:all
 all:pb_c $(testbin)
@@ -104,6 +108,11 @@ test_db_helper:test_db_helper.o
 test_user_manager:test_user_manager.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+
+client:client.o
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ -lngxrpc $(LDFLAGS)
+
 
 # obscure rules
 $(filter %.pb.o,$(objs)): %.o: %.cc

@@ -6,7 +6,8 @@ message MysqlOptions {
 	required string db = 3;
 	required string user = 4;
 	required string passwd = 5;
-	optional string table = 6;
+	required string table = 6;
+	required uint64 flag = 7;
 }
 
 message UserOptions {
@@ -16,7 +17,7 @@ message UserOptions {
 }
 
 message ServerOptions {
-	optional uint32 port = 1 [default = 8844];
+	optional string local_address = 1 [default = "*:8844"];
 	optional bool	connection_reuse = 2 [default = true];
 	optional uint32 idle_time = 3 [default = 300]; // second
 }

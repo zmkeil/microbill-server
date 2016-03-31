@@ -44,9 +44,15 @@ static bool set_record_contents(const char* fp, unsigned long len, MYSQL_FIELD* 
 	return true;
 }
 
-bool MysqlClient::init(std::string table_name)
+bool MysqlClient::init(const MysqlOptions& options)
 {
-	_table = table_name;
+	_host = options.host();
+	_port = options.port();
+	_db = options.db();
+	_user = options.user();
+	_passwd = options.passwd();
+	_table = options.table();
+	_client_flag = options.flag();
 
 	mysql_init(&_mysql);
 	mysql_options(&_mysql, MYSQL_OPT_RECONNECT, "true");
@@ -56,11 +62,6 @@ bool MysqlClient::init(std::string table_name)
 		return false;
 	}
 	return true;
-}
-
-bool MysqlClient::init()
-{
-	return init("test");
 }
 
 bool MysqlClient::truncate()
@@ -139,8 +140,9 @@ bool MysqlClient::query_records(const std::vector<std::string>& ids, std::vector
 				LOG(NOTICE, "Resolve the %dth field of row(\"%s\") failed", i, row[i]);
 			}
 		}
-		// NOTE! the order of MYSQL_RES is revese with ids
-		record_contents->insert(record_contents->begin(), record_content);
+		// Here we don't guess the order of results returned by DB
+		// later, we build a simple map for index
+		record_contents->push_back(record_content);
 	}
 	mysql_free_result(results);
 	if(mysql_errno(&_mysql)) {
@@ -186,6 +188,7 @@ bool MysqlClient::push_records(const std::vector<RecordContent>& new_record_cont
 		sql[sql.size() - 1] = ' ';
 		if (mysql_real_query(&_mysql, sql.c_str(), sql.size())) {
 			LOG(ERROR, "Failed to insert records, sql \"%s\", Error: %s", sql.c_str(), mysql_error(&_mysql));
+			// TODO: for Duplicate error, we should ignore it
 			ret = false;
 		}
 	}

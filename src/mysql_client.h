@@ -2,22 +2,17 @@
 #define APP_MICROBILL_MYSQL_CLIENT_H
 
 #include <mysql/mysql.h>
+#include "bill_config.pb.h"
 #include "db_helper.h"
 
 namespace microbill {
 
 class MysqlClient : public DBClient {
 public:
-	MysqlClient() : _host("127.0.0.1"),
-			_user("micro"),
-			_passwd("bill"),
-			_db("microbill"),
-			_port(3306),
-			_client_flag(0) {}
+	MysqlClient() {}
 	virtual ~MysqlClient() {}
 
-	bool init();
-	bool init(std::string table_name);
+	bool init(const MysqlOptions& mysql_options);
 	bool truncate();
 	void close();
 

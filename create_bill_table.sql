@@ -1,4 +1,4 @@
-create table test(
+create table bill_test(
 	id varchar(100) not null,
 	year integer not null,
 	month integer not null,
@@ -13,5 +13,6 @@ create table test(
 	submit_address varchar(256),
 	last_modify_time integer,
 	last_modify_address varchar(256),
-	is_deleted integer not null default 0
+	is_deleted integer not null default 0,
+	PRIMARY KEY (id)
 )ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='all bills in one table';

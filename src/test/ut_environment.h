@@ -1,6 +1,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <comlog/info_log_context.h>
+#include <protobuf_util.h>
 #include "mysql_client.h"
 
 class UTEnvironment : public ::testing::Environment {
@@ -9,9 +10,11 @@ public:
 	virtual ~UTEnvironment() {}
 
 	void SetUp() {
+		ASSERT_TRUE(common::load_protobuf_config(&microbill_config));
+		
 		// truncate the table bills
 		microbill::MysqlClient* client = new microbill::MysqlClient();
-		client->init();
+		ASSERT_TRUE(client->init(microbill_config.mysql_options()));
 		client->truncate();
 
 		// insert some data into table bills
@@ -32,4 +35,6 @@ public:
 	void TearDown() {
 		return;
 	}
+
+	microbill::MicroBillConfig microbill_config;
 };
