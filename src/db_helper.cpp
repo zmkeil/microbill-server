@@ -67,7 +67,7 @@ bool DBHelper::get_records_by_id_list(const std::vector<std::string>& ids,
  * cost : 34
  * id : jxj_2016_03_32 // next record
  */
-static void push_modify_records(const Record& record, std::vector<ModifyRecordPair>* modify_records)
+static void track_modify_records(const Record& record, std::vector<ModifyRecordPair>* modify_records)
 {
 	if (!record.has_id()) {
 		LOG(NOTICE, "modified record don't have id");
@@ -126,7 +126,7 @@ bool DBHelper::push_records(const ::google::protobuf::RepeatedPtrField<Record>& 
 					record.day(), record.pay_earn(), record.gay(), record.comments(),
 					record.cost(), record.is_deleted());
 		} else {
-			push_modify_records(record, &modify_records);
+			track_modify_records(record, &modify_records);
 		}
 	}
 

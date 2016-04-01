@@ -8,9 +8,15 @@
 #include "user_manager.h"
 #include "bill_context.h"
 #include "bill_service_impl.h"
+#include "util.h"
 
 int main()
 {
+	if (!sample::server_side_config_log()) {
+		LOG(ALERT, "Failed to config log");
+		return -1;
+	}
+
 	microbill::MicroBillConfig microbill_config;
 	if (!common::load_protobuf_config(&microbill_config)) {
 		LOG(ALERT, "Failed to parse the conf/startup/service.conf");

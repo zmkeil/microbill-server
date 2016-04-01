@@ -48,5 +48,6 @@ TEST(UserManagerTest, test_user_manager_set_events_for_others)
 	record->set_type(microbill::Record::UPDATE);
 	record->set_id("zmkeil_2016_03_566");
 
+	ASSERT_FALSE(user_manager.set_events_for_others("zz", records));
 	ASSERT_TRUE(user_manager.set_events_for_others("zmkeil", records));
 }

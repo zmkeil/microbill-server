@@ -47,6 +47,7 @@ objs=pending_events.o \
 	 db_helper.o \
 	 user_manager.o \
 	 bill_service_impl.o \
+	 util.o \
 	 main.o \
 	 bill.pb.o \
 	 bill_config.pb.o

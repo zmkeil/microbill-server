@@ -187,9 +187,33 @@ bool MysqlClient::push_records(const std::vector<RecordContent>& new_record_cont
 		}
 		sql[sql.size() - 1] = ' ';
 		if (mysql_real_query(&_mysql, sql.c_str(), sql.size())) {
-			LOG(ERROR, "Failed to insert records, sql \"%s\", Error: %s", sql.c_str(), mysql_error(&_mysql));
-			// TODO: for Duplicate error, we should ignore it
-			ret = false;
+			char error_buf[1024];
+			snprintf(error_buf, 1024, "%s", mysql_error(&_mysql));
+			if (strstr(error_buf, "Duplicate entry")) {
+				LOG(ERROR, "some entry already inserted, we will than insert one by one to avoid them");
+				// for duplicate, we ignore it because client will retry conservatively
+				// then we insert the records one by one, any other method ?
+				for (const RecordContent& content : new_record_contents) {
+					std::string sql_single = "insert into " + _table + _insert_records_sql_snippet + content2string(content);
+					sql_single[sql_single.size() - 1] = ' ';
+					if (mysql_real_query(&_mysql, sql_single.c_str(), sql_single.size())) {
+						memset(error_buf, 0, 1024);
+						snprintf(error_buf, 1024, "%s", mysql_error(&_mysql));
+						if (strstr(error_buf, "Duplicate entry")) {
+							LOG(WARN, "%s alreay inserted before", content.id.c_str());
+							continue;
+						} else {
+							ret = false;
+							LOG(ERROR, "Failed to insert records, sql \"%s\", Error: %s", sql_single.c_str(), mysql_error(&_mysql));
+							continue;	// also continue to insert the followed records
+						}
+					}
+				}
+			} else {
+				// other DB error
+				LOG(ERROR, "Failed to insert records, sql \"%s\", Error: %s", sql.c_str(), mysql_error(&_mysql));
+				ret = false;	
+			}
 		}
 	}
 

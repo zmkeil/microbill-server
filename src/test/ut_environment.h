@@ -18,7 +18,10 @@ public:
 		client->truncate();
 
 		// insert some data into table bills
-		microbill::RecordContent contents[2] = {{"zmkeil_2016_03_182", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},{"jxj_2016_03_32", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}};
+		microbill::RecordContent contents[2] = {
+			{"zmkeil_2016_03_182", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},
+			{"jxj_2016_03_32", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}
+		};
 		std::vector<microbill::RecordContent> new_records;
 		new_records.push_back(contents[0]);
 		new_records.push_back(contents[1]);

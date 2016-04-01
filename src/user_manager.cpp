@@ -34,6 +34,11 @@ bool UserManager::set_events_for_others(std::string self_name,
 		const ::google::protobuf::RepeatedPtrField<Record>& new_records)
 {
 	bool ret = true;
+	// self_name must be registered
+	if (!get_user(self_name)) {
+		LOG(ERROR, "this user not register");
+		return false;
+	}
 	for (auto it = _users.begin(); it != _users.end(); ++it) {
 		if (self_name == it->first) {
 			continue;

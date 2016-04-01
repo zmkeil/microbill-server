@@ -18,7 +18,10 @@ TEST(MysqlClientTest, test_mysql_client_push_records)
 	microbill::MysqlClient* client = new microbill::MysqlClient();
 	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
 
-	microbill::RecordContent contents[2] = {{"zmkeil_2016_03_199", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},{"jxj_2016_03_333", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}};
+	microbill::RecordContent contents[2] = {
+		{"zmkeil_2016_03_199", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},
+		{"jxj_2016_03_333", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}
+	};
 	std::vector<microbill::RecordContent> new_records;
 	new_records.push_back(contents[0]);
 	new_records.push_back(contents[1]);
@@ -62,6 +65,26 @@ TEST(MysqlClientTest, test_mysql_client_push_records)
 	client->close();
 }
 
+TEST(MysqlClientTest, test_mysql_client_push_records_duplicate)
+{
+	microbill::MysqlClient* client = new microbill::MysqlClient();
+	ASSERT_TRUE(client->init(env->microbill_config.mysql_options()));
+
+	microbill::RecordContent contents[3] = {
+		{"zmkeil_2016_03_199", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},
+		{"jxj_2016_03_333", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}
+	};
+	std::vector<microbill::RecordContent> new_records;
+	new_records.push_back(contents[0]);
+	new_records.push_back(contents[1]);
+	std::vector<microbill::ModifyRecordPair> modify_records;
+
+	// already inserted
+	ASSERT_TRUE(client->push_records(new_records, modify_records));
+	ASSERT_TRUE(client->push_records(new_records, modify_records));
+	client->close();
+}
+
 TEST(MysqlClientTest, test_mysql_client_get_records)
 {
 	microbill::MysqlClient* client = new microbill::MysqlClient();
@@ -84,11 +107,13 @@ TEST(MysqlClientTest, test_mysql_client_get_records)
 	ASSERT_TRUE(client->query_records(ids, &contents));
 	ASSERT_EQ(2, contents.size());
 
-	const microbill::RecordContent& first = contents[0];
+	// here we guess the result returned by mysql is ordered by char
+	// in db_helper, we build a simple map for index
+	const microbill::RecordContent& first = contents[1];
 	ASSERT_STREQ("zmkeil_2016_03_182", first.id.c_str());
 	ASSERT_EQ(12, first.day);
 
-	const microbill::RecordContent& second = contents[1];
+	const microbill::RecordContent& second = contents[0];
 	ASSERT_STREQ("jxj_2016_03_32", second.id.c_str());
 	ASSERT_EQ(2016, second.year);
 	ASSERT_EQ(3, second.month);
