@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
 	nrpc::Channel channel;
 	nrpc::ChannelOption option;
-	if (!channel.init("127.0.0.1", 8844, &option)) {
+	if (!channel.init("127.0.0.1", 8899, &option)) {
 		LOG(ERROR, "Fail to init channel");
 		return -1;
 	}
