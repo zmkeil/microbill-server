@@ -61,6 +61,14 @@ bool MysqlClient::init(const MysqlOptions& options)
 		LOG(ERROR, "failed to connect to database: Error: %s\n", mysql_error(&_mysql));
 		return false;
 	}
+	if (mysql_options(&_mysql, MYSQL_SET_CHARSET_NAME, "utf8")) {
+		LOG(ERROR, "failed to set charset, the current charset is %s", mysql_character_set_name(&_mysql));
+		return false;
+	}
+	if (mysql_set_character_set(&_mysql, "utf8")) {
+		LOG(ERROR, "failed to set charset, the current charset is %s", mysql_character_set_name(&_mysql));
+		return false;
+	}
 	return true;
 }
 

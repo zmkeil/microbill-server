@@ -8,20 +8,20 @@ message Record {
 	}
 	required Type	type = 1;
 	required string	id = 2;
-	required int32	year = 3;
-	required int32	month = 4;
-	optional int32	day = 5;
-	optional int32	pay_earn = 6;
+	required fixed32 year = 3;
+	required fixed32 month = 4;
+	optional fixed32 day = 5;
+	optional fixed32 pay_earn = 6;
 	optional string gay = 7;
 	optional string gay_address = 8;
 	optional string comments = 9;
-	optional int32	cost = 10;
+	optional fixed32 cost = 10;
 	optional string submitter = 11;
-	optional int32	submit_time = 12;
+	optional fixed32 submit_time = 12;
 	optional string	submit_address = 13;
-	optional int32	last_modify_time = 14;
+	optional fixed32 last_modify_time = 14;
 	optional string	last_modify_address = 15;
-	optional int32	is_deleted = 16;
+	optional fixed32 is_deleted = 16;
 }
 
 message BillRequest {
@@ -30,8 +30,8 @@ message BillRequest {
 	repeated Record 	records = 2;
 
 	// pull other's records
-	optional uint32		begin_index = 3;
-	optional uint32		max_line = 4 [default = 10];
+	optional fixed32		begin_index = 3;
+	optional fixed32		max_line = 4 [default = 10];
 }
 
 message BillResponse {

@@ -20,7 +20,7 @@ TEST(MysqlClientTest, test_mysql_client_push_records)
 
 	microbill::RecordContent contents[2] = {
 		{"zmkeil_2016_03_199", 2016, 3, 12, 0, "zmkeil", "buy electric bike", 2200, 0},
-		{"jxj_2016_03_333", 2016, 3, 15, 0, "jxj", "buy shoes", 328, 0}
+		{"jxj_2016_03_333", 2016, 3, 15, 0, "赵莽", "buy shoes", 328, 0}
 	};
 	std::vector<microbill::RecordContent> new_records;
 	new_records.push_back(contents[0]);
@@ -37,7 +37,7 @@ TEST(MysqlClientTest, test_mysql_client_push_records)
 	ASSERT_TRUE(client->query_single_record("jxj_2016_03_333", &content));
 	ASSERT_EQ(15, content.day);
 	ASSERT_EQ(0, content.pay_earn);
-	ASSERT_STREQ("jxj", content.gay.c_str());
+	ASSERT_STREQ("赵莽", content.gay.c_str());
 	ASSERT_STREQ("buy shoes", content.comments.c_str());
 	ASSERT_EQ(328, content.cost);
 	ASSERT_EQ(0, content.is_deleted);

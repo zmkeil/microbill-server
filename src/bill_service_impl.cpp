@@ -37,6 +37,8 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 				response->set_status(true);
 			}
 		}
+	} else {
+		response->set_status(true);
 	}
 
 	// 1. server side don't remember which events you have already get, it just return 
