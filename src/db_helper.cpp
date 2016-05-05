@@ -117,6 +117,8 @@ bool DBHelper::push_records(const ::google::protobuf::RepeatedPtrField<Record>& 
 {
 	std::vector<RecordContent> new_record_contents;
 	std::vector<ModifyRecordPair> modify_records;
+	std::string all_new_records;
+	std::string all_update_records;
 
 	int record_size = new_records.size();
 	for (int i = 0; i < record_size; ++i) {
@@ -125,9 +127,17 @@ bool DBHelper::push_records(const ::google::protobuf::RepeatedPtrField<Record>& 
 			new_record_contents.emplace_back(record.id(), record.year(), record.month(),
 					record.day(), record.pay_earn(), record.gay(), record.comments(),
 					record.cost(), record.is_deleted());
+			all_new_records += record.id();
+			all_new_records += ",";
 		} else {
 			track_modify_records(record, &modify_records);
+			all_update_records += record.id();
+			all_update_records += ",";
 		}
+	}
+	if (_context) {
+		_context->set_session_field(std::string("new_records"), all_new_records);
+		_context->set_session_field(std::string("update_records"), all_update_records);
 	}
 
 	return _client->push_records(new_record_contents, modify_records);

@@ -8,6 +8,7 @@ namespace microbill {
 
 UserManager::UserManager()
 {
+	_context = NULL;
 }
 
 UserManager::~UserManager()

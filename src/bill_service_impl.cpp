@@ -16,7 +16,9 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	nrpc::Controller* cntl = static_cast<nrpc::Controller*>(cntl_base);
 	BillContext* context = static_cast<BillContext*>(cntl->service_context());
 	DBHelper* db_helper = context->db_helper;
+	db_helper->set_context(context);
 	UserManager* user_manager = context->user_manager;
+	user_manager->set_context(context);
 
 	// 1. first set events for others and don't push DB if failed, so gurante others
 	// can get your update.
@@ -39,6 +41,10 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 		}
 	} else {
 		response->set_status(true);
+	}
+	context->set_session_field("status", response->status() ? "true" : "false");
+	if (!response->status()) {
+		context->set_session_field("err_msg", response->has_error_msg() ? response->error_msg() : "unkown");
 	}
 
 	// 1. server side don't remember which events you have already get, it just return 

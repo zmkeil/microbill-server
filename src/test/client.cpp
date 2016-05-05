@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
 	nrpc::Channel channel;
 	nrpc::ChannelOption option;
-	if (!channel.init("127.0.0.1", 8899, &option)) {
+	if (!channel.init("127.0.0.1", 8888, &option)) {
 		LOG(ERROR, "Fail to init channel");
 		return -1;
 	}
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 	if (cntl.Failed()) {
 		LOG(ERROR, "%s, update error: \"%s\"", gay.c_str(), cntl.ErrorText().c_str());
 	}
-	if (response.status()) {
+	if (!response.status()) {
 		LOG(ERROR, "push records error: \"%s\"", response.has_error_msg() ? response.error_msg().c_str() : "unkown");
 	}
 	int record_size = (int)response.records().size();

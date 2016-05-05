@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <google/protobuf/repeated_field.h>
+#include "bill_context.h"
 #include "bill.pb.h"
 
 namespace microbill {
@@ -43,7 +44,7 @@ public:
 
 class DBHelper {
 public:
-	DBHelper(DBClient* client) : _client(client) {}
+	DBHelper(DBClient* client) : _client(client), _context(NULL) {}
 	virtual ~DBHelper() {}
 
 	bool get_records_by_id_list(const std::vector<std::string>& ids,
@@ -51,8 +52,13 @@ public:
 
 	bool push_records(const ::google::protobuf::RepeatedPtrField<Record>& new_records);
 
+	void set_context(BillContext* context) {
+		_context = context;
+	}
+
 private:
 	DBClient* _client;
+	BillContext* _context;
 };
 
 }
