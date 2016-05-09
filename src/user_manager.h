@@ -37,20 +37,15 @@ public:
 	bool init(const ::google::protobuf::RepeatedPtrField<UserOptions>& user_options);
 
 	bool set_events_for_others(std::string self_name,
-			const ::google::protobuf::RepeatedPtrField<Record>& new_records);
+			const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context);
 	bool get_events_for_self(std::string self_name, int begin_index, int max_line,
-			DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records);
-
-	void set_context(BillContext* context) {
-		_context = context;
-	}
+			DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context);
 
 private:
 	UserInfo* get_user(std::string name);
 
 private:
 	__gnu_cxx::hash_map<std::string, UserInfo*, StrHash, StrEqual> _users;
-	BillContext* _context;
 };
 
 }

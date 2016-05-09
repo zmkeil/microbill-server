@@ -8,7 +8,6 @@ namespace microbill {
 
 UserManager::UserManager()
 {
-	_context = NULL;
 }
 
 UserManager::~UserManager()
@@ -32,8 +31,9 @@ bool UserManager::init(const ::google::protobuf::RepeatedPtrField<UserOptions>& 
 }
 
 bool UserManager::set_events_for_others(std::string self_name,
-		const ::google::protobuf::RepeatedPtrField<Record>& new_records)
+		const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context)
 {
+	(void) context;
 	bool ret = true;
 	// self_name must be registered
 	if (!get_user(self_name)) {
@@ -53,7 +53,7 @@ bool UserManager::set_events_for_others(std::string self_name,
 }
 
 bool UserManager::get_events_for_self(std::string self_name, int begin_index, int max_line,
-		DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records)
+		DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context)
 {
 	UserInfo* self = get_user(self_name);
 	if (!self) {
@@ -64,7 +64,13 @@ bool UserManager::get_events_for_self(std::string self_name, int begin_index, in
 		return false;
 	}
 
-	return events->get(begin_index, max_line, db_helper, updated_records);
+	if (context) {
+		char buffer[256];
+		snprintf(buffer, 256, "[%d,%d]", begin_index, max_line);
+		std::string other_event(buffer);
+		context->set_session_field("sync_index", other_event);
+	}
+	return events->get(begin_index, max_line, db_helper, updated_records, context);
 }
 
 UserInfo* UserManager::get_user(std::string name)

@@ -36,7 +36,7 @@ TEST(DBHelperTest, test_db_helper_get_records)
 	record->set_id("jxj_2016_03_32");
 	record->set_type(microbill::Record::UPDATE);
 
-	ASSERT_TRUE(db_helper.get_records_by_id_list(ids, &updated_records)); 
+	ASSERT_TRUE(db_helper.get_records_by_id_list(ids, &updated_records, NULL)); 
 	ASSERT_EQ(3, updated_records.size());
 	
 	const microbill::Record& first = updated_records.Get(0);
@@ -98,7 +98,7 @@ TEST(DBHelperTest, test_db_helper_push_records)
 	record->set_type(microbill::Record::UPDATE);
 	record->set_cost(350);
 
-	ASSERT_TRUE(db_helper.push_records(new_records));
+	ASSERT_TRUE(db_helper.push_records(new_records, NULL));
 
 	ASSERT_TRUE(client->query_single_record("zmkeil_2016_03_199", &content));
 	ASSERT_STREQ("buy books", content.comments.c_str());

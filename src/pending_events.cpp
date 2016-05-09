@@ -64,7 +64,7 @@ bool PendingEvents::init()
 }
 
 bool PendingEvents::get(int begin_index, int max_line, DBHelper* db_helper,
-		::google::protobuf::RepeatedPtrField<Record>* updated_records)
+		::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context)
 {
 	auto it = std::lower_bound(_events.begin(), _events.end(), begin_index, EventComp());
 	if (it == _events.end() || (it)->index != begin_index) {
@@ -73,19 +73,25 @@ bool PendingEvents::get(int begin_index, int max_line, DBHelper* db_helper,
 	}
 
 	std::vector<std::string> ids;
+	std::string ids_str;
 	for (;it != _events.end(); ++it) {
 		Record* record = updated_records->Add();
 		record->set_type((it)->action);
 		record->set_id((it)->id);
-		
 		ids.push_back((it)->id);
+
+		ids_str += (it)->id;
+		ids_str += "|";
 		if (--max_line == 0) {
 			break;
 		}
 	}
+	if (context) {
+		context->set_session_field("others_records", ids_str);
+	}
 
 	// get content from DB
-	return db_helper->get_records_by_id_list(ids, updated_records);
+	return db_helper->get_records_by_id_list(ids, updated_records, context);
 }
 
 bool PendingEvents::set(const ::google::protobuf::RepeatedPtrField<Record>& new_records)

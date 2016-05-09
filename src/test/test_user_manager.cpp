@@ -25,7 +25,7 @@ TEST(UserManagerTest, test_user_manager_get_events_for_self)
 	microbill::DBHelper db_helper(client);
 	::google::protobuf::RepeatedPtrField<microbill::Record> records;
 
-	ASSERT_TRUE(user_manager.get_events_for_self("zmkeil", 1, 10, &db_helper, &records));
+	ASSERT_TRUE(user_manager.get_events_for_self("zmkeil", 1, 10, &db_helper, &records, NULL));
 	ASSERT_EQ(3, records.size());
 	ASSERT_FALSE(records.Get(0).has_year());
 
@@ -48,6 +48,6 @@ TEST(UserManagerTest, test_user_manager_set_events_for_others)
 	record->set_type(microbill::Record::UPDATE);
 	record->set_id("zmkeil_2016_03_566");
 
-	ASSERT_FALSE(user_manager.set_events_for_others("zz", records));
-	ASSERT_TRUE(user_manager.set_events_for_others("zmkeil", records));
+	ASSERT_FALSE(user_manager.set_events_for_others("zz", records, NULL));
+	ASSERT_TRUE(user_manager.set_events_for_others("zmkeil", records, NULL));
 }

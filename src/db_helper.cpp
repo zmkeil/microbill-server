@@ -12,8 +12,9 @@ namespace microbill {
  * some id may not exist in DB
  */
 bool DBHelper::get_records_by_id_list(const std::vector<std::string>& ids,
-		::google::protobuf::RepeatedPtrField<Record>* updated_records)
+		::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context)
 {
+	(void) context;
 	std::vector<RecordContent> record_contents;
 	if (!_client->query_records(ids, &record_contents)) {
 		LOG(ERROR, "query_records failed");
@@ -67,20 +68,25 @@ bool DBHelper::get_records_by_id_list(const std::vector<std::string>& ids,
  * cost : 34
  * id : jxj_2016_03_32 // next record
  */
-static void track_modify_records(const Record& record, std::vector<ModifyRecordPair>* modify_records)
+static std::string track_modify_records(const Record& record, std::vector<ModifyRecordPair>* modify_records)
 {
+	std::string str;
 	if (!record.has_id()) {
-		LOG(NOTICE, "modified record don't have id");
-		return;
+		LOG(WARN, "modified record don't have id");
+		return str;
 	}
-	if (record.has_year() || record.has_month()) {
-		LOG(NOTICE, "can't modify year or month");
-		return;
-	}
+	str += record.id();
+	str += ",";
+//	if (record.has_year() || record.has_month()) {
+//		LOG(WARN, "can't modify year or month");
+//		return str;
+//	}
 	if (record.has_day()) {
 		std::stringstream ss;
 		ss << record.day();
 		modify_records->emplace_back("day", ss.str());
+		str += ss.str();
+		str += ",";
 	}
 	if (record.has_pay_earn()) {
 		modify_records->emplace_back("pay_earn", record.pay_earn() ? "1" : "0");
@@ -88,32 +94,51 @@ static void track_modify_records(const Record& record, std::vector<ModifyRecordP
 	if (record.has_gay()) {
 		std::string gay = "'" + record.gay() + "'";
 		modify_records->emplace_back("gay", gay);
+		str += gay;
+		str += ",";
 	}
 	if (record.has_comments()) {
 		std::string comments = "'" + record.comments() + "'";
 		modify_records->emplace_back("comments", comments);
+		str += comments;
+		str += ",";
 	}
 	if (record.has_cost()) {
 		std::stringstream ss;
 		ss << record.cost();
 		modify_records->emplace_back("cost", ss.str());
+		str += ss.str();
+		str += ",";
 	}
 	if (record.has_is_deleted()) {
-		modify_records->emplace_back("is_deleted", record.is_deleted() ? "1" : "0");
+		std::string is_deleted = record.is_deleted() ? "1" : "0";
+		modify_records->emplace_back("is_deleted", is_deleted);
+		str += is_deleted;
+		str += ",";
 	}
 
 	if (modify_records->size() == 0) {
-		return;
+		return str;
 	} 
 	if ((modify_records->back().first) == std::string("id")) {
-		LOG(NOTICE, "this modify record don't have changes");
-		return;
+		LOG(WARN, "this modify record don't have changes");
+		return str;
 	}
 	std::string id = "'" + record.id() + "'";
 	modify_records->emplace_back("id", id);
+	return str;
 }
 
-bool DBHelper::push_records(const ::google::protobuf::RepeatedPtrField<Record>& new_records)
+static std::string record_to_string(const Record& record)
+{
+	char buffer[1024];
+	snprintf(buffer, 1024, "%s,%d,%s,%s,%d", record.id().c_str(),
+			record.day(), record.gay().c_str(), record.comments().c_str(), record.cost());
+	std::string str(buffer);
+	return str;
+}
+
+bool DBHelper::push_records(const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context)
 {
 	std::vector<RecordContent> new_record_contents;
 	std::vector<ModifyRecordPair> modify_records;
@@ -127,17 +152,17 @@ bool DBHelper::push_records(const ::google::protobuf::RepeatedPtrField<Record>& 
 			new_record_contents.emplace_back(record.id(), record.year(), record.month(),
 					record.day(), record.pay_earn(), record.gay(), record.comments(),
 					record.cost(), record.is_deleted());
-			all_new_records += record.id();
-			all_new_records += ",";
+			all_new_records += record_to_string(record);
+			all_new_records += "|";
+
 		} else {
-			track_modify_records(record, &modify_records);
-			all_update_records += record.id();
-			all_update_records += ",";
+			all_update_records += track_modify_records(record, &modify_records);
+			all_update_records += "|";
 		}
 	}
-	if (_context) {
-		_context->set_session_field(std::string("new_records"), all_new_records);
-		_context->set_session_field(std::string("update_records"), all_update_records);
+	if (context) {
+		context->set_session_field(std::string("new_records"), all_new_records);
+		context->set_session_field(std::string("update_records"), all_update_records);
 	}
 
 	return _client->push_records(new_record_contents, modify_records);

@@ -16,9 +16,8 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	nrpc::Controller* cntl = static_cast<nrpc::Controller*>(cntl_base);
 	BillContext* context = static_cast<BillContext*>(cntl->service_context());
 	DBHelper* db_helper = context->db_helper;
-	db_helper->set_context(context);
 	UserManager* user_manager = context->user_manager;
-	user_manager->set_context(context);
+	context->set_session_field("gay", request->gay());
 
 	// 1. first set events for others and don't push DB if failed, so gurante others
 	// can get your update.
@@ -28,11 +27,11 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	// 	    for events: other client will deal with the Duplicate events;
 	//	 	for records: server will deal with the Duplicate events; 
 	if (request->records().size() > 0) {
-		if (!user_manager->set_events_for_others(request->gay(), request->records())) {
+		if (!user_manager->set_events_for_others(request->gay(), request->records(), context)) {
 			response->set_status(false);
 			response->set_error_msg("Fail to set events for others");
 		} else {
-			if (!db_helper->push_records(request->records())) {
+			if (!db_helper->push_records(request->records(), context)) {
 				response->set_status(false);
 				response->set_error_msg("Fail to push records into DB");
 			} else {
@@ -53,8 +52,8 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	if (request->has_begin_index()) {
 		::google::protobuf::RepeatedPtrField<Record>* others_records = response->mutable_records();
 		if (!user_manager->get_events_for_self(request->gay(), request->begin_index(), request->max_line(),
-				db_helper, others_records)) {
-			LOG(ERROR, "Fail to get events for self");
+				db_helper, others_records, context)) {
+			LOG(DEBUG, "no more events for self");
 		}
 	}
 

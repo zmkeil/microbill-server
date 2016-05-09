@@ -33,7 +33,7 @@ public:
 	//bool reload();
 
 	bool get(int begin_index, int max_line, DBHelper* db_helper,
-			::google::protobuf::RepeatedPtrField<Record>* updated_records);
+			::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context);
 
 	bool set(const ::google::protobuf::RepeatedPtrField<Record>& new_records);
 			

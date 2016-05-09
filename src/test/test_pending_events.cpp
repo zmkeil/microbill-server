@@ -33,15 +33,15 @@ TEST(PendingEventsTest, test_pending_events_get)
 	microbill::DBHelper db_helper(client);
 	::google::protobuf::RepeatedPtrField<microbill::Record> records;
 
-	ASSERT_TRUE(pending_events.get(1, 3, &db_helper, &records));
+	ASSERT_TRUE(pending_events.get(1, 3, &db_helper, &records, NULL));
 	ASSERT_EQ(3,records.size());
 
 	records.Clear();
-   	ASSERT_TRUE(pending_events.get(3, 10, &db_helper, &records));
+   	ASSERT_TRUE(pending_events.get(3, 10, &db_helper, &records, NULL));
 	ASSERT_EQ(2,records.size());
    
 	records.Clear();
-	ASSERT_TRUE(pending_events.get(1, 10, &db_helper, &records));
+	ASSERT_TRUE(pending_events.get(1, 10, &db_helper, &records, NULL));
 	ASSERT_EQ(4,records.size());
 
 	const microbill::Record& record = records.Get(2);
@@ -99,7 +99,7 @@ TEST(PendingEventsTest, test_pending_events_set)
 	microbill::DBHelper db_helper(client);
 
 	records.Clear();
-	ASSERT_TRUE(pending_events.get(1, 8, &db_helper, &records));
+	ASSERT_TRUE(pending_events.get(1, 8, &db_helper, &records, NULL));
 	ASSERT_EQ(5,records.size());
 
 	ASSERT_FALSE(records.Get(0).has_year());

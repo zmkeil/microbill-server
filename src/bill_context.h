@@ -12,6 +12,13 @@ namespace microbill {
 class DBHelper;
 class UserManager;
 
+struct LogContextPair {
+	std::string key;
+	std::string value;
+	LogContextPair(std::string _key, std::string _value) :
+		key(_key), value(_value) {}
+};
+
 struct BillContext : public nrpc::ServiceContext
 {
 	DBHelper* db_helper;
@@ -22,21 +29,21 @@ struct BillContext : public nrpc::ServiceContext
 
 	void build_log(std::string* log) {
 		std::for_each(_session_context.begin(), _session_context.end(),
-			[&log, this] (std::pair<std::string, std::string> p) {
-				(*log) += p.first;
+			[&log, this] (LogContextPair p) {
+				(*log) += p.key;
 				(*log) += ":";
-				(*log) += p.second;
+				(*log) += p.value;
 				(*log) += _delimiter;
 			});
 		return;
 	}
 
 	void set_session_field(std::string key, std::string value) {
-		_session_context.insert(std::pair<std::string, std::string>(key, value));
+		_session_context.emplace_back(key, value);
 	}
 
 private:
-	std::map<std::string, std::string> _session_context;
+	std::vector<LogContextPair> _session_context;
 	std::string _delimiter;
 };
 

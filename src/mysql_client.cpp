@@ -233,6 +233,7 @@ bool MysqlClient::push_records(const std::vector<RecordContent>& new_record_cont
 			sql[sql.size() - 1] = ' ';
 			sql += "where id = ";
 			sql += record_pair.second;
+			LOG(ERROR, "update sql \"%s\"", sql.c_str());
 			if (mysql_real_query(&_mysql, sql.c_str(), sql.size())) {
 				LOG(ERROR, "Failed to update records, sql \"%s\", Error: %s", sql.c_str(), mysql_error(&_mysql));
 				ret = false;

@@ -44,21 +44,16 @@ public:
 
 class DBHelper {
 public:
-	DBHelper(DBClient* client) : _client(client), _context(NULL) {}
+	DBHelper(DBClient* client) : _client(client) {}
 	virtual ~DBHelper() {}
 
 	bool get_records_by_id_list(const std::vector<std::string>& ids,
-			::google::protobuf::RepeatedPtrField<Record>* updated_records);
+			::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context);
 
-	bool push_records(const ::google::protobuf::RepeatedPtrField<Record>& new_records);
-
-	void set_context(BillContext* context) {
-		_context = context;
-	}
+	bool push_records(const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context);
 
 private:
 	DBClient* _client;
-	BillContext* _context;
 };
 
 }
