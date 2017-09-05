@@ -117,4 +117,8 @@ bool PendingEvents::set(const ::google::protobuf::RepeatedPtrField<Record>& new_
 	return true;
 }
 
+int PendingEvents::get_last_index() {
+	return _last_index;
+}
+
 }

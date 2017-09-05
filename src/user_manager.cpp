@@ -30,32 +30,27 @@ bool UserManager::init(const ::google::protobuf::RepeatedPtrField<UserOptions>& 
 	return true;
 }
 
-bool UserManager::set_events_for_others(std::string self_name,
+bool UserManager::set_events(std::string gay_name,
 		const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context)
 {
 	(void) context;
-	bool ret = true;
-	// self_name must be registered
-	if (!get_user(self_name)) {
+	// gay_name must be registered
+	UserInfo* user = get_user(gay_name);
+	if (!user) {
 		LOG(ERROR, "this user not register");
 		return false;
 	}
-	for (auto it = _users.begin(); it != _users.end(); ++it) {
-		if (self_name == it->first) {
-			continue;
-		}
-		PendingEvents* events = (it->second)->pending_events;
-		if (!(events->set(new_records))) {
-			ret = false;
-		}
+	PendingEvents* events = user->pending_events;
+	if (!(events->set(new_records))) {
+		return false;
 	}
-	return ret;
+	return true;
 }
 
-bool UserManager::get_events_for_self(std::string self_name, int begin_index, int max_line,
+bool UserManager::get_events(std::string gay_name, int begin_index, int max_line,
 		DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context)
 {
-	UserInfo* self = get_user(self_name);
+	UserInfo* self = get_user(gay_name);
 	if (!self) {
 		return false;
 	}
@@ -68,9 +63,17 @@ bool UserManager::get_events_for_self(std::string self_name, int begin_index, in
 		char buffer[256];
 		snprintf(buffer, 256, "[%d,%d]", begin_index, max_line);
 		std::string other_event(buffer);
-		context->set_session_field("sync_index", other_event);
+		context->set_session_field("sync_index_" + gay_name, other_event);
 	}
 	return events->get(begin_index, max_line, db_helper, updated_records, context);
+}
+
+int UserManager::get_last_index(std::string gay_name) {
+	UserInfo* user = get_user(gay_name);
+	if (!user) {
+		return 0;
+	}
+	return user->pending_events->get_last_index();
 }
 
 UserInfo* UserManager::get_user(std::string name)

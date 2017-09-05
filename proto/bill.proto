@@ -27,19 +27,29 @@ message Record {
 message BillRequest {
 	// push self's records
 	required string 	gay = 1;
-	repeated Record 	records = 2;
+	repeated Record 	push_records = 2;
 
 	// pull other's records
-	optional fixed32		begin_index = 3;
-	optional fixed32		max_line = 4 [default = 10];
+	message PullInfo {
+		required string gay = 1;	
+		required fixed32		begin_index = 3;
+		optional fixed32		max_line = 4 [default = 10];
+	}
+	repeated PullInfo pull_infos = 3;
 }
 
 message BillResponse {
 	required bool		status = 1;
 	optional string		error_msg = 2;
+	// push 之前的最后一个index，用于恢复自身断点之前的数据
+	optional fixed32	last_index = 3;
 
 	// some records maybe not have content, how to solve it ?
-	repeated Record		records = 4;
+	message PullRecords {
+		required string		gay = 1;
+		repeated Record		records = 2;
+	}
+	repeated PullRecords pull_records = 4;
 }
 
 service BillService {

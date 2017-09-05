@@ -37,6 +37,7 @@ public:
 
 	bool set(const ::google::protobuf::RepeatedPtrField<Record>& new_records);
 			
+	int get_last_index();
 
 private:
 	std::string _file;

@@ -36,10 +36,11 @@ public:
 	virtual ~UserManager();
 	bool init(const ::google::protobuf::RepeatedPtrField<UserOptions>& user_options);
 
-	bool set_events_for_others(std::string self_name,
+	bool set_events(std::string gay_name,
 			const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context);
-	bool get_events_for_self(std::string self_name, int begin_index, int max_line,
+	bool get_events(std::string gay_name, int begin_index, int max_line,
 			DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context);
+	int get_last_index(std::string gay_name);
 
 private:
 	UserInfo* get_user(std::string name);

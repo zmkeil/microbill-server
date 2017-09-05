@@ -26,20 +26,18 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	// 4. don't worry about the events and records already set(insert) before failed, 
 	// 	    for events: other client will deal with the Duplicate events;
 	//	 	for records: server will deal with the Duplicate events; 
-	if (request->records().size() > 0) {
-		if (!user_manager->set_events_for_others(request->gay(), request->records(), context)) {
+	response->set_last_index(user_manager->get_last_index(request->gay()));
+	response->set_status(true);
+	if (request->push_records().size() > 0) {
+		if (!user_manager->set_events(request->gay(), request->push_records(), context)) {
 			response->set_status(false);
-			response->set_error_msg("Fail to set events for others");
+			response->set_error_msg("Fail to set events in PendingEvent");
 		} else {
-			if (!db_helper->push_records(request->records(), context)) {
+			if (!db_helper->push_records(request->push_records(), context)) {
 				response->set_status(false);
 				response->set_error_msg("Fail to push records into DB");
-			} else {
-				response->set_status(true);
 			}
 		}
-	} else {
-		response->set_status(true);
 	}
 	context->set_session_field("status", response->status() ? "true" : "false");
 	if (!response->status()) {
@@ -49,11 +47,17 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	// 1. server side don't remember which events you have already get, it just return 
 	// records begin from request->begin_index()
 	// 2. client side deal with data integrity, which means that it will retry if the last results is suspicious
-	if (request->has_begin_index()) {
-		::google::protobuf::RepeatedPtrField<Record>* others_records = response->mutable_records();
-		if (!user_manager->get_events_for_self(request->gay(), request->begin_index(), request->max_line(),
-				db_helper, others_records, context)) {
-			LOG(DEBUG, "no more events for self");
+	for (int i = 0; i < request->pull_infos().size(); i++) {
+		const BillRequest_PullInfo& pull_info = request->pull_infos().Get(i);
+		std::string gay = pull_info.gay();
+		int begin_index = pull_info.begin_index();
+		int max_line = pull_info.max_line();
+		BillResponse_PullRecords* pull_record = response->add_pull_records();
+		pull_record->set_gay(gay);
+		::google::protobuf::RepeatedPtrField<Record>* records = pull_record->mutable_records();
+		if (!user_manager->get_events(gay, begin_index, max_line,
+				db_helper, records, context)) {
+			LOG(DEBUG, "no more events for %s", gay.c_str());
 		}
 	}
 

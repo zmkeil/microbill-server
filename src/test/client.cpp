@@ -15,8 +15,8 @@ static microbill::RecordContent s_contents[3] = {
 
 int main(int argc, char* argv[])
 {
-	if (argc != 2) {
-		printf("Usage: ./client <gay>\n");
+	if (argc < 2) {
+		printf("Usage: ./client gay <sync_gay>\n");
 		return -1;
 	}
 	std::string gay(argv[1]);
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
 	request.set_gay(gay);
 	for (int i = 0; i < 3; ++i) {
-		microbill::Record* record = request.mutable_records()->Add();
+		microbill::Record* record = request.mutable_push_records()->Add();
 		record->set_type(microbill::Record::NEW);
 		record->set_id(gay + s_contents[i].id);
 		record->set_year(s_contents[i].year);
@@ -47,20 +47,31 @@ int main(int argc, char* argv[])
 		record->set_cost(s_contents[i].cost);
 		record->set_is_deleted(s_contents[i].is_deleted);
 	}
-	request.set_begin_index(1);
-	request.set_max_line(10);
-	stub.update(&cntl, &request, &response, NULL);
 
+	for (int i = 2; i < argc; i++) {
+		std::string sync_gay(argv[i]);
+		microbill::BillRequest_PullInfo* pull_info = request.add_pull_infos();
+		pull_info->set_gay(sync_gay);
+		pull_info->set_begin_index(1);
+		pull_info->set_max_line(10);
+	}
+
+	stub.update(&cntl, &request, &response, NULL);
 	if (cntl.Failed()) {
 		LOG(ERROR, "%s, update error: \"%s\"", gay.c_str(), cntl.ErrorText().c_str());
 	}
 	if (!response.status()) {
 		LOG(ERROR, "push records error: \"%s\"", response.has_error_msg() ? response.error_msg().c_str() : "unkown");
 	}
-	int record_size = (int)response.records().size();
-	for (int i = 0; i < record_size; ++i) {
-		const microbill::Record& record = response.records().Get(i);
-		std::cout << microbill::Record_Type_Name(record.type()) << ", " << record.id() << ", " << record.comments() << std::endl;
+	std::cout << "self's last index: " << response.last_index() << std::endl;
+	int pull_gay_size = (int)response.pull_records().size();
+	for (int i = 0; i < pull_gay_size; ++i) {
+		const microbill::BillResponse_PullRecords& pull_record = response.pull_records().Get(i);
+		std::cout << "update gay: " << pull_record.gay() << std::endl;
+		for (int j = 0; j < pull_record.records().size(); j++) { 
+			const microbill::Record& record = pull_record.records().Get(j);
+			std::cout << microbill::Record_Type_Name(record.type()) << ", " << record.id() << ", " << record.comments() << std::endl;
+		}
 	}
 
 	return 0;
