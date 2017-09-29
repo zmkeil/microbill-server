@@ -36,7 +36,7 @@ LIBPATH=-L. \
   -L../../../../common \
   -L/usr/local/lib \
   -L/usr/lib64/mysql
-LDFLAGS=-lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlclient_r -lz -lmicrobill -lcommon
+LDFLAGS=-g -lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlclient_r -lz -lmicrobill -lcommon
 
 
 # ##########
@@ -45,17 +45,18 @@ LDFLAGS=-lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlcli
 
 PROTO=
 
-objs=test_pending_events.o \
+objs=test_event_handler.o \
 	 test_mysql_client.o \
 	 test_db_helper.o \
+	 test_billmsg_adaptor.o \
+	 test_pp_operator.o \
 	 test_user_manager.o \
 	 client.o
 
-testbin=test_pending_events \
-		test_mysql_client \
-		test_db_helper \
-		test_user_manager \
-		client
+testbin=test_mysql_client \
+		test_event_handler \
+		test_billmsg_adaptor \
+		test_pp_operator
 
 .PHONY:all
 all:pb_c $(testbin)
@@ -93,7 +94,7 @@ pb_c:
 	done
 
 # UT
-test_pending_events:test_pending_events.o
+test_event_handler:test_event_handler.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
@@ -102,6 +103,14 @@ test_mysql_client:test_mysql_client.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
 test_db_helper:test_db_helper.o
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+
+test_billmsg_adaptor:test_billmsg_adaptor.o
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+
+test_pp_operator:test_pp_operator.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 

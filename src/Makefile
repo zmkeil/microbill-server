@@ -34,7 +34,7 @@ LIBPATH=-L. \
   -L../../../nrpc/output/lib/ \
   -L/usr/local/lib \
   -L/usr/lib64/mysql
-LDFLAGS=-lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlclient_r -lz -lngxrpc -lcommon
+LDFLAGS=-g -lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlclient_r -lz -lngxrpc -lcommon
 
 
 ######### files #########################################
@@ -42,13 +42,11 @@ LDFLAGS=-lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysqlcli
 PROTO=../proto/bill \
 	  ../proto/bill_config
 
-objs=pending_events.o \
+objs=pp_operator.o \
+	 event_handler.o \
+	 db_handler.o \
 	 mysql_client.o \
-	 db_helper.o \
-	 user_manager.o \
-	 bill_service_impl.o \
-	 util.o \
-	 main.o \
+	 billmsg_adaptor.o \
 	 bill.pb.o \
 	 bill_config.pb.o
 
@@ -91,9 +89,9 @@ libmicrobill.a:$(filter-out main.o, $(objs))
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mlibmicrobill.a[0m']"
 	ar rcs libmicrobill.a $^
 
-bill:$(objs)
-	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mbill[0m']"
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+#bill:$(objs)
+#	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mbill[0m']"
+#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
 # obscure rules
 $(filter %.pb.o,$(objs)): %.o: %.cc

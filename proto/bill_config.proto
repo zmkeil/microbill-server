@@ -6,14 +6,24 @@ message MysqlOptions {
 	required string db = 3;
 	required string user = 4;
 	required string passwd = 5;
-	required string table = 6;
-	required uint64 flag = 7;
+	required uint64 flag = 6;
 }
 
 message UserOptions {
 	required string name = 1;
 	required string file_name = 2;
 	optional string key = 3;
+}
+
+message BillOptions {
+    required string table_name = 1;
+    repeated UserOptions users = 2;
+}
+
+message PropertyOptions {
+    required string pocket_table_name = 1;
+    required string assets_table_name = 2;
+	required string file_name = 3;
 }
 
 message ServerOptions {
@@ -24,6 +34,7 @@ message ServerOptions {
 
 message MicroBillConfig {
 	required MysqlOptions mysql_options = 1;
-	repeated UserOptions  user_options = 2;
-	required ServerOptions server_options = 3;
+	required BillOptions bill_options = 2;
+	required PropertyOptions property_options = 3;
+	required ServerOptions server_options = 4;
 }
