@@ -19,9 +19,7 @@ int main(int argc, char** argv)
 TEST(PPOperatorTest, test_pp_operator_push)
 {
 	microbill::MysqlClient* client = env->mysql_client;
-    microbill::DBHandler db_handler(client);
-    microbill::EventHandler event_handler("./data/test_events.txt");
-    microbill::PPOperator pp_operator(&event_handler, &db_handler);
+    microbill::PPOperator pp_operator("./data/test_events.txt", client);
     ASSERT_TRUE(pp_operator.init());
 
     ::google::protobuf::RepeatedPtrField<microbill::Record> push_bill_records;
@@ -53,7 +51,8 @@ TEST(PPOperatorTest, test_pp_operator_push)
     record->set_day(8);
     record->set_comments("buy two shoes");
 
-    microbill::BillMsgAdaptor billmsg_adaptor(push_bill_records, NULL);
+    microbill::BillMsgAdaptor billmsg_adaptor;
+    billmsg_adaptor.set_push_bill_records(&push_bill_records);
     ASSERT_TRUE(pp_operator.push(&billmsg_adaptor));
     ASSERT_EQ(3, pp_operator.get_last_index());
 }
@@ -61,16 +60,17 @@ TEST(PPOperatorTest, test_pp_operator_push)
 TEST(PPOperatorTest, test_pp_operator_pull)
 {
 	microbill::MysqlClient* client = env->mysql_client;
-    microbill::DBHandler db_handler(client);
-    microbill::EventHandler event_handler("./data/test_events.txt");
-    microbill::PPOperator pp_operator(&event_handler, &db_handler);
+    microbill::PPOperator pp_operator("./data/test_events.txt", client);
     ASSERT_TRUE(pp_operator.init());
     ASSERT_EQ(3, pp_operator.get_last_index());
 
-    ::google::protobuf::RepeatedPtrField<microbill::Record> push_bill_records;
-    ::google::protobuf::RepeatedPtrField<microbill::Record> pull_bill_records;
-    microbill::BillMsgAdaptor billmsg_adaptor(push_bill_records, &pull_bill_records);
+    // billmsg_adaptor.push_bill_records = null
+    microbill::BillMsgAdaptor billmsg_adaptor;
+    ASSERT_TRUE(pp_operator.pull(1/*begin_index*/, 5/*max_lines*/, &billmsg_adaptor));
 
+    // set pull records to store result
+    ::google::protobuf::RepeatedPtrField<microbill::Record> pull_bill_records;
+    billmsg_adaptor.set_pull_bill_records(&pull_bill_records);
     ASSERT_TRUE(pp_operator.pull(1/*begin_index*/, 5/*max_lines*/, &billmsg_adaptor));
     ASSERT_EQ(2, pull_bill_records.size());
 
@@ -85,3 +85,4 @@ TEST(PPOperatorTest, test_pp_operator_pull)
     ASSERT_EQ(8, record.day());
     ASSERT_EQ(168, record.cost());
 }
+

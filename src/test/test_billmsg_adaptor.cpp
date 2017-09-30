@@ -16,6 +16,7 @@ int main(int argc, char** argv)
 
 TEST(BillMsgAdaptorTest, test_billmsg_adaptor_push_sqls)
 {
+    microbill::BillMsgAdaptor billmsg_adaptor;
     ::google::protobuf::RepeatedPtrField<microbill::Record> push_bill_records;
 	microbill::Record* record = push_bill_records.Add();
 	record->set_id("zmkeil_2016_03_182");
@@ -47,7 +48,7 @@ TEST(BillMsgAdaptorTest, test_billmsg_adaptor_push_sqls)
 
     microbill::EventLines event_lines;
     microbill::SQLs sqls;
-    microbill::BillMsgAdaptor billmsg_adaptor(push_bill_records, NULL);
+    billmsg_adaptor.set_push_bill_records(&push_bill_records);
     billmsg_adaptor.push_sqls(&event_lines, &sqls);
     ASSERT_EQ(3, event_lines.size());
     ASSERT_EQ(3, sqls.size());
@@ -83,9 +84,7 @@ TEST(BillMsgAdaptorTest, test_billmsg_adaptor_push_sqls)
 
 TEST(BillMsgAdaptorTest, test_billmsg_adaptor_pull_sqls)
 {
-    ::google::protobuf::RepeatedPtrField<microbill::Record> push_bill_records;
-    ::google::protobuf::RepeatedPtrField<microbill::Record> pull_bill_records;
-    microbill::BillMsgAdaptor billmsg_adaptor(push_bill_records, &pull_bill_records);
+    microbill::BillMsgAdaptor billmsg_adaptor;
 
 	microbill::EventLines event_lines;
     microbill::EventLine event_line;
