@@ -11,8 +11,7 @@ static void set_record_line(MYSQL_ROW row, MYSQL_FIELD* fields,
         if (!row[i]) {
             continue;
         }
-        std::pair<std::string, std::string> item = std::make_pair(fields[i].name, row[i]);
-        record_line->push_back(item);
+        record_line->insert(std::pair<std::string, std::string>(fields[i].name, row[i]));
     }
 }
 

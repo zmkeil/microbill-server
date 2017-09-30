@@ -45,18 +45,19 @@ LDFLAGS=-g -lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysql
 
 PROTO=
 
-objs=test_event_handler.o \
-	 test_mysql_client.o \
-	 test_db_helper.o \
+objs=test_mysql_client.o \
+	 test_event_handler.o \
 	 test_billmsg_adaptor.o \
 	 test_pp_operator.o \
-	 test_user_manager.o \
+	 test_bill_manager.o \
 	 client.o
 
 testbin=test_mysql_client \
 		test_event_handler \
 		test_billmsg_adaptor \
-		test_pp_operator
+		test_pp_operator \
+		test_bill_manager \
+		client
 
 .PHONY:all
 all:pb_c $(testbin)
@@ -114,7 +115,7 @@ test_pp_operator:test_pp_operator.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
-test_user_manager:test_user_manager.o
+test_bill_manager:test_bill_manager.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 

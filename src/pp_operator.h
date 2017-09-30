@@ -12,9 +12,16 @@ namespace microbill {
 class PPOperator {
 
 public:
-	PPOperator(EventHandler* event_handler, DBHandler* db_handler) :
-			_event_handler(event_handler), _db_handler(db_handler) {}
-	virtual ~PPOperator() {}
+	PPOperator(const std::string& event_file, DBClient* db_client) :
+			_event_file(event_file), _db_client(db_client) {}
+	virtual ~PPOperator() {
+        if (_event_handler) {
+            delete _event_handler;
+        }
+        if (_db_handler) {
+            delete _db_handler;
+        }
+    }
 
     bool init();
 
@@ -29,8 +36,12 @@ public:
 	}
 
 private:
-	EventHandler* _event_handler;
-	DBHandler* _db_handler;
+    std::string _event_file;
+    DBClient* _db_client;
+
+private:
+	EventHandler* _event_handler = NULL;
+	DBHandler* _db_handler = NULL;
 };
 
 }

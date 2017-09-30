@@ -31,7 +31,7 @@ message BillRequest {
 
 	// pull other's records
 	message PullInfo {
-		required string gay = 1;	
+		required string gay = 1;
 		required fixed32		begin_index = 3;
 		optional fixed32		max_line = 4 [default = 10];
 	}

@@ -4,10 +4,21 @@
 #include <comlog/info_log_context.h>
 #include <controller.h>
 #include <channel.h>
-#include "db_helper.h"
 #include "bill.pb.h"
 
-static microbill::RecordContent s_contents[3] = {
+struct RecordContent {
+    std::string id;
+    int year;
+    int month;
+    int day;
+    int pay_earn;
+    std::string gay;
+    std::string comments;
+    int cost;
+    int is_deleted;
+};
+
+static RecordContent s_contents[3] = {
 	{"_2016_03_18", 2016, 3, 15, 0, "gay", "lunch", 55, 0},
 	{"_2016_03_36", 2016, 3, 19, 0, "gay", "shoes", 328, 0},
 	{"_2016_03_44", 2016, 3, 28, 0, "gay", "play", 100, 0}

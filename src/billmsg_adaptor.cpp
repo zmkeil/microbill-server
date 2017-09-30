@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <string>
+#include <comlog/info_log_context.h>
 #include "billmsg_adaptor.h"
 
 namespace microbill {
@@ -45,8 +46,11 @@ static std::string billr2sql_update(const Record& bill_record) {
 }
 
 void BillMsgAdaptor::push_sqls(EventLines* event_lines, SQLs* sqls) {
+    if (!_push_bill_records || _push_bill_records->size() == 0) {
+        return;
+    }
     EventLine event_line;
-    for (auto bill_record : _push_bill_records) {
+    for (auto bill_record : *_push_bill_records) {
         // check has sid
         if (!bill_record.has_id()) {
             continue;
@@ -94,39 +98,51 @@ void BillMsgAdaptor::pull_sqls(const EventLines& event_lines, SQLs* sqls) {
     sqls->push_back(sql);
 }
 
-void BillMsgAdaptor::set_pull_records(const RecordLines& record_lines) {
+void BillMsgAdaptor::set_pull_records(const EventLines& event_lines,
+        const RecordLines& record_lines) {
+    if (!_pull_bill_records) {
+        return;
+    }
+    std::map<std::string/*sid*/, Record_Type/*action*/> action_map;
+    for (auto event_line : event_lines) {
+        if (action_map.find(event_line[1]) != action_map.end()) {
+            // already exist, only can be NEW - UPDATE - UPDATE ...
+            // so just use NEW
+            continue;
+        }
+        action_map[event_line[1]] = (event_line[0] == "0" ? Record::NEW : Record::UPDATE);
+    }
     for (auto record_line : record_lines) {
         Record* record = _pull_bill_records->Add();
-        for (auto it : record_line) {
-            if (it.first == "id") {
-                record->set_id(it.second);
-            } else if (it.first == "year") {
-                record->set_year(atoi(it.second.c_str()));
-            } else if (it.first == "month") {
-                record->set_month(atoi(it.second.c_str()));
-            } else if (it.first == "day") {
-                record->set_day(atoi(it.second.c_str()));
-            } else if (it.first == "pay_earn") {
-                record->set_pay_earn(atoi(it.second.c_str()));
-            } else if (it.first == "gay") {
-                record->set_gay(it.second);
-            } else if (it.first == "comments") {
-                record->set_comments(it.second);
-            } else if (it.first == "cost") {
-                record->set_cost(atoi(it.second.c_str()));
-            } else if (it.first == "is_deleted") {
-                record->set_is_deleted(atoi(it.second.c_str()));
-            }
+        if (record_line["id"] == "" ||
+                record_line["year"] == "" ||
+                record_line["month"] == "" ||
+                record_line["day"] == "" ||
+                record_line["pay_earn"] == "" ||
+                record_line["gay"] == "" ||
+                record_line["comments"] == "" ||
+                record_line["cost"] == "" ||
+                record_line["is_deleted"] == "") {
+            LOG(WARN, "bad bill record sid = %s", record_line["id"].c_str());
+            continue;
         }
+        std::string id = record_line["id"];
+        record->set_id(id);
+        if (action_map.find(id) != action_map.end()) {
+            record->set_type(action_map[id]);
+        } else {
+            // never happen
+            record->set_type(Record::NEW);
+        }
+        record->set_year(atoi(record_line["year"].c_str()));
+        record->set_month(atoi(record_line["month"].c_str()));
+        record->set_day(atoi(record_line["day"].c_str()));
+        record->set_pay_earn(atoi(record_line["pay_earn"].c_str()));
+        record->set_gay(record_line["gay"]);
+        record->set_comments(record_line["comments"]);
+        record->set_cost(atoi(record_line["cost"].c_str()));
+        record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
     }
-}
-
-std::string BillMsgAdaptor::push_ids_str() {
-    return "NEW:" + _push_new_ids + " UPDATE:" + _push_update_ids;
-}
-
-std::string BillMsgAdaptor::pull_ids_str() {
-    return _pull_ids;
 }
 
 }

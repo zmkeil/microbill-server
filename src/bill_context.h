@@ -4,13 +4,10 @@
 #include <map>
 #include <algorithm>
 #include <service_context.h>
-//#include "db_helper.h"
-//#include "user_manager.h"
 
 namespace microbill {
 
-class DBHelper;
-class UserManager;
+class BillManager;
 
 struct LogContextPair {
 	std::string key;
@@ -21,11 +18,10 @@ struct LogContextPair {
 
 struct BillContext : public nrpc::ServiceContext
 {
-	DBHelper* db_helper;
-	UserManager* user_manager;
+	BillManager* bill_manager;
 
-	BillContext(DBHelper* db_helper, UserManager* user_manager) :
-		db_helper(db_helper), user_manager(user_manager), _delimiter("^,") {}
+	BillContext(BillManager* bill_manager) :
+		bill_manager(bill_manager), _delimiter("^,") {}
 
 	void build_log(std::string* log) {
 		std::for_each(_session_context.begin(), _session_context.end(),
@@ -50,17 +46,16 @@ private:
 class BillContextFactory : public nrpc::ServiceContextFactory
 {
 public:
-	BillContextFactory(DBHelper* db_helper, UserManager* user_manager) :
-		_db_helper(db_helper), _user_manager(user_manager) {}
+	BillContextFactory(BillManager* bill_manager) :
+		_bill_manager(bill_manager) {}
 	virtual ~BillContextFactory() {}
 
 	nrpc::ServiceContext* create_context() {
-		return new BillContext(_db_helper, _user_manager);
+		return new BillContext(_bill_manager);
 	}
 
 private:
-	DBHelper* _db_helper;
-	UserManager* _user_manager;
+	BillManager* _bill_manager;
 };
 
 }

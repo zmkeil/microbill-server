@@ -4,19 +4,11 @@
 #include <hash_map>
 #include <google/protobuf/repeated_field.h>
 #include "bill_config.pb.h"
-#include "pending_events.h"
-#include "bill_context.h"
+#include "bill.pb.h"
+#include "pp_operator.h"
+#include "billmsg_adaptor.h"
 
 namespace microbill {
-
-struct UserInfo {
-	std::string name;
-	std::string event_file;
-	PendingEvents* pending_events;
-	UserInfo(std::string name, std::string event_file) :
-		name(name), event_file(event_file),
-		pending_events(NULL) {}
-};
 
 struct StrHash {
 	size_t operator()(const std::string& str) const {
@@ -30,23 +22,23 @@ struct StrEqual {
 	}
 };
 
-class UserManager {
+class BillManager {
 public:
-	UserManager();
-	virtual ~UserManager();
-	bool init(const ::google::protobuf::RepeatedPtrField<UserOptions>& user_options);
+	BillManager();
+	virtual ~BillManager();
+	bool init(const BillOptions& bill_options, DBClient* db_client);
 
-	bool set_events(std::string gay_name,
-			const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context);
-	bool get_events(std::string gay_name, int begin_index, int max_line,
-			DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context);
-	int get_last_index(std::string gay_name);
+	bool push(const std::string& gay_name, BillMsgAdaptor* billmsg_adaptor);
 
-private:
-	UserInfo* get_user(std::string name);
+	bool pull(const std::string& gay_name, int begin_index, int max_line, BillMsgAdaptor* billmsg_adaptor);
+
+	int get_last_index(const std::string& gay_name);
 
 private:
-	__gnu_cxx::hash_map<std::string, UserInfo*, StrHash, StrEqual> _users;
+	PPOperator* _get_operator(const std::string& gay_name);
+
+private:
+	__gnu_cxx::hash_map<std::string, PPOperator*, StrHash, StrEqual> _users;
 };
 
 }

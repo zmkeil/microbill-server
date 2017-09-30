@@ -13,9 +13,7 @@ namespace microbill {
 class BillMsgAdaptor : public MsgAdaptor {
 
 public:
-	BillMsgAdaptor(::google::protobuf::RepeatedPtrField<Record>& push_bill_records,
-			::google::protobuf::RepeatedPtrField<Record>* pull_bill_records) :
-		_push_bill_records(push_bill_records), _pull_bill_records(pull_bill_records) {}
+	BillMsgAdaptor() {}
 	virtual ~BillMsgAdaptor() {}
 
 	// for push
@@ -23,10 +21,27 @@ public:
 
 	// for pull
 	void pull_sqls(const EventLines&, SQLs*);
-	void set_pull_records(const RecordLines&);
+	void set_pull_records(const EventLines&, const RecordLines&);
 
-    std::string push_ids_str();
-    std::string pull_ids_str();
+public:
+    void set_push_bill_records(
+            const ::google::protobuf::RepeatedPtrField<Record>* push_bill_records) {
+        _push_bill_records = push_bill_records;
+        // clear _push_ids
+        _push_new_ids.clear();
+        _push_update_ids.clear();
+    }
+    void set_pull_bill_records(::google::protobuf::RepeatedPtrField<Record>* pull_bill_records) {
+        _pull_bill_records = pull_bill_records;
+        // clear _pull_ids
+        _pull_ids.clear();
+    }
+    std::string push_ids_str() {
+        return "NEW:" + _push_new_ids + " UPDATE:" + _push_update_ids;
+    }
+    std::string pull_ids_str() {
+        return _pull_ids;
+    }
 
 public:
     static void set_bill_table_name(const std::string& table_name) {
@@ -34,8 +49,8 @@ public:
     }
 
 private:
-	::google::protobuf::RepeatedPtrField<Record>& _push_bill_records;
-	::google::protobuf::RepeatedPtrField<Record>* _pull_bill_records;
+	const ::google::protobuf::RepeatedPtrField<Record>* _push_bill_records = NULL;
+	::google::protobuf::RepeatedPtrField<Record>* _pull_bill_records = NULL;
 
     std::string _push_new_ids;
     std::string _push_update_ids;

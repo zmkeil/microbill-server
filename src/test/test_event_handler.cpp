@@ -71,8 +71,9 @@ TEST(EventHandlerTest, test_event_handler_get)
     // begin_index not exist
     ASSERT_FALSE(event_handler.get(0/*begin_index*/, 2/*max_lines*/, &event_lines));
 
-    // begin_index too big
-    ASSERT_FALSE(event_handler.get(6/*begin_index*/, 2/*max_lines*/, &event_lines));
+    // no more events
+    ASSERT_TRUE(event_handler.get(6/*begin_index*/, 2/*max_lines*/, &event_lines));
+    ASSERT_EQ(0, event_lines.size());
 
     // == max_lines
     ASSERT_TRUE(event_handler.get(2/*begin_index*/, 2/*max_lines*/, &event_lines));

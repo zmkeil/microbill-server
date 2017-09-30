@@ -47,11 +47,15 @@ objs=pp_operator.o \
 	 db_handler.o \
 	 mysql_client.o \
 	 billmsg_adaptor.o \
+	 bill_manager.o \
+	 util.o \
 	 bill.pb.o \
-	 bill_config.pb.o
+	 bill_config.pb.o \
+	 bill_service_impl.o \
+	 main.o
 
 .PHONY:all
-all:pb_c libmicrobill.a bill UT
+all:pb_c libmicrobill.a UT bill
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mall[0m']"
 	@echo "make all done"
 
@@ -75,9 +79,9 @@ pb_c:
 		if [ -f $$pb.pb.cc ]; then \
 			timeold=`stat $$pb.pb.cc | grep -i Modify`; \
 			timenew=`stat $$pb.proto | grep -i Modify`; \
-			if [ timenew -lt timeold ]; then \
-				echo "protoc --cpp_out=./ $$pb.proto"; \
-				( protoc --cpp_out=./ $$pb.proto ) || exit 1; \
+			if [ timenew -gt timeold ]; then \
+				echo "protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto"; \
+				( protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto ) || exit 1; \
 			fi \
 		else \
 			echo "protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto"; \
@@ -89,9 +93,9 @@ libmicrobill.a:$(filter-out main.o, $(objs))
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mlibmicrobill.a[0m']"
 	ar rcs libmicrobill.a $^
 
-#bill:$(objs)
-#	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mbill[0m']"
-#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+bill:$(objs)
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40mbill[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
 # obscure rules
 $(filter %.pb.o,$(objs)): %.o: %.cc

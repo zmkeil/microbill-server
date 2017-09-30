@@ -6,7 +6,7 @@ src/test/test_billmsg_adaptor
 src/test/test_mysql_client
 src/test/test_event_handler
 src/test/test_pp_operator
-src/test/test_user_manager
+src/test/test_bill_manager
 src/bill
 src/data
 src/logs
@@ -18,3 +18,4 @@ doc
 dump
 service
 service_multi
+service_pp

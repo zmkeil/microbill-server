@@ -2,83 +2,87 @@
 #include <iostream>
 #include <string>
 #include <comlog/info_log_context.h>
-#include "user_manager.h"
+#include "bill_manager.h"
+#include "db_handler.h"
+#include "event_handler.h"
+#include "billmsg_adaptor.h"
 
 namespace microbill {
 
-UserManager::UserManager()
+BillManager::BillManager()
 {
 }
 
-UserManager::~UserManager()
+BillManager::~BillManager()
 {
+    for (auto it : _users) {
+        if (it.second) {
+            delete it.second;
+        }
+    }
 }
 
-bool UserManager::init(const ::google::protobuf::RepeatedPtrField<UserOptions>& user_options)
+bool BillManager::init(const BillOptions& bill_options, DBClient* db_client)
 {
-	int o_size = user_options.size();
+	int o_size = bill_options.users().size();
 	for (int i = 0; i < o_size; ++i) {
-		const UserOptions& user = user_options.Get(i);
-		UserInfo* uinfo = new UserInfo(user.name(), user.file_name());
-		uinfo->pending_events = new PendingEvents(user.file_name());
-		if (!uinfo->pending_events->init()) {
-			LOG(ERROR, "Failed to init user \"%s\"", user.name().c_str());
-			return false;
-		}
-		_users[user.name()] = uinfo;
+		const UserOptions& user = bill_options.users().Get(i);
+        std::string user_name = user.name();
+        std::string event_file_name = user.file_name();
+        PPOperator* pp_operator = new PPOperator(event_file_name, db_client);
+        if (!pp_operator->init()) {
+            LOG(ERROR, "Failed to init \"%s\"'s pp_operator", user_name.c_str());
+            return false;
+        }
+		_users[user_name] = pp_operator;
 	}
+
+    BillMsgAdaptor::set_bill_table_name(bill_options.table_name());
 	return true;
 }
 
-bool UserManager::set_events(std::string gay_name,
-		const ::google::protobuf::RepeatedPtrField<Record>& new_records, BillContext* context)
+bool BillManager::push(const std::string& gay_name, BillMsgAdaptor* billmsg_adaptor)
 {
-	(void) context;
 	// gay_name must be registered
-	UserInfo* user = get_user(gay_name);
-	if (!user) {
-		LOG(ERROR, "this user not register");
+	PPOperator* pp_operator = _get_operator(gay_name);
+	if (!pp_operator) {
+		LOG(ERROR, "push bill failed: \"%s\" not register", gay_name.c_str());
 		return false;
 	}
-	PendingEvents* events = user->pending_events;
-	if (!(events->set(new_records))) {
+
+	if (!pp_operator->push(billmsg_adaptor)) {
+		LOG(ERROR, "push bill failed: pp_operate error", gay_name.c_str());
 		return false;
 	}
 	return true;
 }
 
-bool UserManager::get_events(std::string gay_name, int begin_index, int max_line,
-		DBHelper* db_helper, ::google::protobuf::RepeatedPtrField<Record>* updated_records, BillContext* context)
+bool BillManager::pull(const std::string& gay_name, int begin_index, int max_line, BillMsgAdaptor* billmsg_adaptor)
 {
-	UserInfo* self = get_user(gay_name);
-	if (!self) {
-		return false;
-	}
-	PendingEvents* events = self->pending_events;
-	if (!events) {
+	PPOperator* pp_operator = _get_operator(gay_name);
+	if (!pp_operator) {
+        LOG(ERROR, "pull bill failed: \"%s\" not register", gay_name.c_str());
 		return false;
 	}
 
-	if (context) {
-		char buffer[256];
-		snprintf(buffer, 256, "[%d,%d]", begin_index, max_line);
-		std::string other_event(buffer);
-		context->set_session_field("sync_index_" + gay_name, other_event);
+	if (!pp_operator->pull(begin_index, max_line, billmsg_adaptor)) {
+        LOG(ERROR, "pull bill failed: pp_operate error", gay_name.c_str());
+        return false;
 	}
-	return events->get(begin_index, max_line, db_helper, updated_records, context);
+	return true;
 }
 
-int UserManager::get_last_index(std::string gay_name) {
-	UserInfo* user = get_user(gay_name);
-	if (!user) {
+int BillManager::get_last_index(const std::string& gay_name) {
+	PPOperator* pp_operator = _get_operator(gay_name);
+	if (!pp_operator) {
 		return 0;
 	}
-	return user->pending_events->get_last_index();
+	return pp_operator->get_last_index();
 }
 
-UserInfo* UserManager::get_user(std::string name)
+PPOperator* BillManager::_get_operator(const std::string& gay_name)
 {
-	auto it = _users.find(name);
+	auto it = _users.find(gay_name);
 	if (it == _users.end()) {
 		return NULL;
 	}

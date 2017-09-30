@@ -3,6 +3,7 @@
 #define APP_MICROBILL_MSG_ADAPTOR_H
 
 #include <vector>
+#include <map>
 #include <string>
 
 namespace microbill {
@@ -18,9 +19,11 @@ enum class SQLType {
 typedef std::pair<SQLType, std::string> SQL;
 typedef std::vector<SQL> SQLs;
 
-typedef std::vector<std::pair<std::string, std::string> > RecordLine;
+typedef std::map<std::string, std::string> RecordLine;
 typedef std::vector<RecordLine> RecordLines;
 
+
+// Only adaptor, store nothing
 class MsgAdaptor {
 
 public:
@@ -32,7 +35,7 @@ public:
 
 	// for pull
 	virtual void pull_sqls(const EventLines&, SQLs*) = 0;
-	virtual void set_pull_records(const RecordLines&) = 0;
+	virtual void set_pull_records(const EventLines&, const RecordLines&) = 0;
 
     // for log
     virtual std::string push_ids_str() = 0;

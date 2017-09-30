@@ -83,41 +83,29 @@ TEST(MysqlClientTest, test_mysql_client_select)
     // check record
     // not update
     microbill::RecordLine record_line = record_lines[0];
-    for (auto it : record_line) {
-        if (it.first == "sid") {
-            ASSERT_STREQ("1", it.second.c_str());
-        }
-        if (it.first == "money") {
-            ASSERT_STREQ("7323", it.second.c_str());
-        }
-    }
+    ASSERT_TRUE(record_line.find("sid") != record_line.end());
+    ASSERT_STREQ("1", record_line["sid"].c_str());
+    ASSERT_TRUE(record_line.find("money") != record_line.end());
+    ASSERT_STREQ("7323", record_line["money"].c_str());
 
     // duplicate insert but not update
     record_line = record_lines[2];
-    for (auto it : record_line) {
-        if (it.first == "sid") {
-            ASSERT_STREQ("3", it.second.c_str());
-        }
-        if (it.first == "money") {
-            ASSERT_STREQ("7596", it.second.c_str());
-        }
-    }
+    ASSERT_TRUE(record_line.find("sid") != record_line.end());
+    ASSERT_STREQ("3", record_line["sid"].c_str());
+    ASSERT_TRUE(record_line.find("money") != record_line.end());
+    ASSERT_STREQ("7596", record_line["money"].c_str());
 
     // update
     record_line = record_lines[3];
-    for (auto it : record_line) {
-        if (it.first == "sid") {
-            ASSERT_STREQ("4", it.second.c_str());
-        }
-        if (it.first == "money") {
-            ASSERT_STREQ("8000", it.second.c_str());
-        }
-    }
+    ASSERT_TRUE(record_line.find("sid") != record_line.end());
+    ASSERT_STREQ("4", record_line["sid"].c_str());
+    ASSERT_TRUE(record_line.find("money") != record_line.end());
+    ASSERT_STREQ("8000", record_line["money"].c_str());
 
     // append records
     sql_str = env->select_pocket_prefix + "where sid in ('1','2')";
     sql = std::make_pair(microbill::SQLType::SELECT, sql_str);
     ASSERT_TRUE(client->query(sql, &record_lines));
-	ASSERT_EQ(6, record_lines.size());
+	ASSERT_EQ(4/*old*/ + 2, record_lines.size());
 }
 

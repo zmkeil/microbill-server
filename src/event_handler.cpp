@@ -64,8 +64,12 @@ bool EventHandler::init()
 bool EventHandler::get(int begin_index, int max_line, EventLines* event_lines)
 {
 	auto it = std::lower_bound(_events.begin(), _events.end(), begin_index, EventComp());
-	if (it == _events.end() || (it)->index != begin_index) {
-		// begin_index is too bigger, or not existed in updated_records
+	if (it == _events.end()) {
+        // no more events
+        return true;
+    }
+    if ((it)->index != begin_index) {
+		// begin_index not existed in updated_records
 		return false;
 	}
 
