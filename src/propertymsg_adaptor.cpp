@@ -6,8 +6,29 @@
 
 namespace microbill {
 
+// event format: action_type property_type sid
+
 std::string PropertyMsgAdaptor::s_pocket_table_name = "unkown";
 std::string PropertyMsgAdaptor::s_assets_table_name = "unkown";
+
+static PropertyRecord_AssetsRecord::StoreAddr s_store_addr_value[8] = {
+    PropertyRecord_AssetsRecord_StoreAddr_ZM_EBAO,
+    PropertyRecord_AssetsRecord_StoreAddr_ZM_FUND,
+    PropertyRecord_AssetsRecord_StoreAddr_ZM_TBJ,
+    PropertyRecord_AssetsRecord_StoreAddr_ZM_WD,
+    PropertyRecord_AssetsRecord_StoreAddr_ZM_SZYH,
+    PropertyRecord_AssetsRecord_StoreAddr_JXJ_TBJ,
+    PropertyRecord_AssetsRecord_StoreAddr_JXJ_LJS,
+    PropertyRecord_AssetsRecord_StoreAddr_JXJ_SZYH
+};
+
+static PropertyRecord_AssetsRecord::FlowType s_flow_type_value[5] = {
+    PropertyRecord_AssetsRecord_FlowType_STORE,
+    PropertyRecord_AssetsRecord_FlowType_INTEREST,
+    PropertyRecord_AssetsRecord_FlowType_DRAW,
+    PropertyRecord_AssetsRecord_FlowType_DEBT,
+    PropertyRecord_AssetsRecord_FlowType_FLOW
+};
 
 static std::string pocketr2sql_insert(const PocketRecord& pocket_record) {
     std::stringstream ss;
@@ -137,7 +158,7 @@ void PropertyMsgAdaptor::push_sqls(EventLines* event_lines, SQLs* sqls) {
         // event
         event_line.clear();
         event_line.push_back(action_type == PropertyRecord::NEW ? "0" : "1");
-        event_line.push_back(property_type == PropertyRecord::POCKET_MONEY ? "P" : "A");
+        event_line.push_back(property_type == PropertyRecord::POCKET_MONEY ? "p" : "a");
         event_line.push_back(sid);
         event_lines->push_back(event_line);
     }
@@ -147,15 +168,15 @@ void PropertyMsgAdaptor::pull_sqls(const EventLines& event_lines, SQLs* sqls) {
     std::string in_pocket_ids;
     std::string in_assets_ids;
     for (auto event_line : event_lines) {
-        // format: action_type id
+        // format: action_type property_type sid
         if (event_line.size() != 3) {
             continue;
         }
-        if (event_line[1] == "P") {
-            _pull_ids += "p_" + event_line[1] + "|";
+        if (event_line[1] == "p") {
+            _pull_ids += "p_" + event_line[2] + "|";
             in_pocket_ids += "'" + event_line[2] + "',";
-        } else if (event_line[1] == "P") {
-            _pull_ids += "a_" + event_line[1] + "|";
+        } else if (event_line[1] == "a") {
+            _pull_ids += "a_" + event_line[2] + "|";
             in_assets_ids += "'" + event_line[2] + "',";
         }
     }
@@ -180,47 +201,75 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
     if (!_pull_property_records) {
         return;
     }
-    std::map<std::string/*sid*/, Record_Type/*action*/> action_map;
+    std::map<std::string/*type_sid*/, PropertyRecord_Type/*action*/> action_map;
     for (auto event_line : event_lines) {
-        if (action_map.find(event_line[1]) != action_map.end()) {
+        std::string key = event_line[1] + "_" + event_line[2];
+        if (action_map.find(key) != action_map.end()) {
             // already exist, only can be NEW - UPDATE - UPDATE ...
             // so just use NEW
             continue;
         }
-        action_map[event_line[1]] = (event_line[0] == "0" ? Record::NEW : Record::UPDATE);
+        action_map[key] = (event_line[0] == "0" ? PropertyRecord::NEW : PropertyRecord::UPDATE);
     }
-/*    for (auto record_line : record_lines) {
-        Record* record = _pull_property_records->Add();
-        if (record_line["id"] == "" ||
-                record_line["year"] == "" ||
-                record_line["month"] == "" ||
-                record_line["day"] == "" ||
-                record_line["pay_earn"] == "" ||
-                record_line["gay"] == "" ||
-                record_line["comments"] == "" ||
-                record_line["cost"] == "" ||
-                record_line["is_deleted"] == "") {
-            LOG(WARN, "bad property record sid = %s", record_line["id"].c_str());
+    for (auto record_line : record_lines) {
+        PropertyRecord* record = _pull_property_records->Add();
+        // sid
+        if (record_line.find("sid") == record_line.end()) {
             continue;
         }
-        std::string id = record_line["id"];
-        record->set_id(id);
-        if (action_map.find(id) != action_map.end()) {
-            record->set_type(action_map[id]);
+        std::string sid = record_line["sid"];
+        // property_type
+        PropertyRecord_PropertyType property_type = (record_line.find("store_addr") != record_line.end() ?
+                PropertyRecord::FIXED_ASSETS : PropertyRecord::POCKET_MONEY);
+        record->set_property_type(property_type);
+        // key ==> action
+        std::string key = (property_type == PropertyRecord::FIXED_ASSETS ? "a_" : "p_") + sid;
+        if (action_map.find(key) != action_map.end()) {
+            record->set_type(action_map[key]);
         } else {
             // never happen
-            record->set_type(Record::NEW);
+            record->set_type(PropertyRecord::NEW);
         }
-        record->set_year(atoi(record_line["year"].c_str()));
-        record->set_month(atoi(record_line["month"].c_str()));
-        record->set_day(atoi(record_line["day"].c_str()));
-        record->set_pay_earn(atoi(record_line["pay_earn"].c_str()));
-        record->set_gay(record_line["gay"]);
-        record->set_comments(record_line["comments"]);
-        record->set_cost(atoi(record_line["cost"].c_str()));
-        record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
+
+        if (property_type == PropertyRecord::POCKET_MONEY) {
+            if (record_line["year"] == "" ||
+                    record_line["month"] == "" ||
+                    record_line["comments"] == "" ||
+                    record_line["money"] == "" ||
+                    record_line["is_deleted"] == "") {
+                LOG(WARN, "bad pocket record sid = %s", sid.c_str());
+                continue;
+            }
+            PropertyRecord_PocketRecord* pocket_record = record->mutable_pocket_record();
+            pocket_record->set_year(atoi(record_line["year"].c_str()));
+            pocket_record->set_month(atoi(record_line["month"].c_str()));
+            pocket_record->set_comments(record_line["comments"]);
+            pocket_record->set_money(atoi(record_line["money"].c_str()));
+            pocket_record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
+        }
+        else if (property_type == PropertyRecord::FIXED_ASSETS) {
+            if (record_line["year"] == "" ||
+                    record_line["month"] == "" ||
+                    record_line["day"] == "" ||
+                    record_line["store_addr"] == "" ||
+                    record_line["flow_type"] == "" ||
+                    record_line["money"] == "" ||
+                    record_line["store_addr_op"] == "" ||
+                    record_line["is_deleted"] == "") {
+                LOG(WARN, "bad assets record sid = %s", sid.c_str());
+                continue;
+            }
+            PropertyRecord_AssetsRecord* assets_record = record->mutable_assets_record();
+            assets_record->set_year(atoi(record_line["year"].c_str()));
+            assets_record->set_month(atoi(record_line["month"].c_str()));
+            assets_record->set_day(atoi(record_line["day"].c_str()));
+            assets_record->set_store_addr(s_store_addr_value[atoi(record_line["store_addr"].c_str())]);
+            assets_record->set_flow_type(s_flow_type_value[atoi(record_line["flow_type"].c_str())]);
+            assets_record->set_money(atoi(record_line["money"].c_str()));
+            assets_record->set_store_addr_op(s_store_addr_value[atoi(record_line["store_addr_op"].c_str())]);
+            assets_record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
+        }
     }
-*/
 }
 
 }

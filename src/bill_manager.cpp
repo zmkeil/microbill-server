@@ -51,7 +51,7 @@ bool BillManager::push(const std::string& gay_name, BillMsgAdaptor* billmsg_adap
 	}
 
 	if (!pp_operator->push(billmsg_adaptor)) {
-		LOG(ERROR, "push bill failed: pp_operate error", gay_name.c_str());
+		LOG(ERROR, "push \"%s\"'s bill failed: pp_operate error", gay_name.c_str());
 		return false;
 	}
 	return true;
@@ -66,7 +66,7 @@ bool BillManager::pull(const std::string& gay_name, int begin_index, int max_lin
 	}
 
 	if (!pp_operator->pull(begin_index, max_line, billmsg_adaptor)) {
-        LOG(ERROR, "pull bill failed: pp_operate error", gay_name.c_str());
+        LOG(ERROR, "pull \"%s\"'s bill failed: pp_operate error", gay_name.c_str());
         return false;
 	}
 	return true;
