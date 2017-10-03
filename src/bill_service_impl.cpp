@@ -5,6 +5,8 @@
 #include "mysql_client.h"
 #include "billmsg_adaptor.h"
 #include "bill_manager.h"
+#include "propertymsg_adaptor.h"
+#include "property_manager.h"
 #include "bill_context.h"
 #include "bill_service_impl.h"
 
@@ -19,6 +21,7 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
 	BillContext* context = static_cast<BillContext*>(cntl->service_context());
 	BillManager* bill_manager = context->bill_manager;
     BillMsgAdaptor billmsg_adaptor;
+	context->set_session_field("action", "BILL");
 	context->set_session_field("gay", request->gay());
 
 	// 1. first set events for others and don't push DB if failed, so gurante others
@@ -67,6 +70,21 @@ void BillServiceImpl::update(google::protobuf::RpcController* cntl_base,
     context->set_session_field("pull_records", all_pull_ids);
 
 	return done->Run();
+}
+
+void BillServiceImpl::property(google::protobuf::RpcController* cntl_base,
+			const PropertyRequest* request,
+			PropertyResponse* response,
+			google::protobuf::Closure* done)
+{
+	nrpc::Controller* cntl = static_cast<nrpc::Controller*>(cntl_base);
+	BillContext* context = static_cast<BillContext*>(cntl->service_context());
+	//PropertyManager* property_manager = context->property_manager;
+    //PropertyMsgAdaptor propertymsg_adaptor;
+	context->set_session_field("action", "PROPERTY");
+	context->set_session_field("gay", request->gay());
+
+    return done->Run();
 }
 
 }

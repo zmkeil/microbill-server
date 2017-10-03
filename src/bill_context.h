@@ -8,6 +8,7 @@
 namespace microbill {
 
 class BillManager;
+class PropertyManager;
 
 struct LogContextPair {
 	std::string key;
@@ -19,9 +20,12 @@ struct LogContextPair {
 struct BillContext : public nrpc::ServiceContext
 {
 	BillManager* bill_manager;
+    PropertyManager* property_manager;
 
-	BillContext(BillManager* bill_manager) :
-		bill_manager(bill_manager), _delimiter("^,") {}
+	BillContext(BillManager* bill_manager, PropertyManager* property_manager) :
+		bill_manager(bill_manager),
+        property_manager(property_manager),
+        _delimiter("^,") {}
 
 	void build_log(std::string* log) {
 		std::for_each(_session_context.begin(), _session_context.end(),
@@ -46,16 +50,17 @@ private:
 class BillContextFactory : public nrpc::ServiceContextFactory
 {
 public:
-	BillContextFactory(BillManager* bill_manager) :
-		_bill_manager(bill_manager) {}
+	BillContextFactory(BillManager* bill_manager, PropertyManager* property_manager) :
+		_bill_manager(bill_manager), _property_manager(property_manager) {}
 	virtual ~BillContextFactory() {}
 
 	nrpc::ServiceContext* create_context() {
-		return new BillContext(_bill_manager);
+		return new BillContext(_bill_manager, _property_manager);
 	}
 
 private:
 	BillManager* _bill_manager;
+    PropertyManager* _property_manager;
 };
 
 }

@@ -15,6 +15,10 @@ public:
 			BillResponse* response,
 			google::protobuf::Closure* done);
 
+	virtual void property(google::protobuf::RpcController* cntl_base,
+			const PropertyRequest* request,
+			PropertyResponse* response,
+			google::protobuf::Closure* done);
 };
 
 }
