@@ -115,14 +115,16 @@ message PropertyRequest {
 
 	// pull property records, used by other gays
 	optional fixed32	begin_index = 3;
+    optional fixed32    max_line = 4;
 }
 
 message PropertyResponse {
 	required bool		status = 1;
 	optional string		error_msg = 2;
+    optional fixed32    last_index = 3;
 
 	// pulled property records
-	repeated PropertyRecord push_property_records = 3;
+	repeated PropertyRecord pull_property_records = 4;
 }
 
 service BillService {

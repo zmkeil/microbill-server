@@ -1,5 +1,5 @@
-#ifndef APP_MICROBILL_USER_MANAGER_H
-#define APP_MICROBILL_USER_MANAGER_H
+#ifndef APP_MICROBILL_PROPERTY_MANAGER_H
+#define APP_MICROBILL_PROPERTY_MANAGER_H
 
 #include <map>
 #include <google/protobuf/repeated_field.h>

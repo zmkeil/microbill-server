@@ -79,11 +79,39 @@ void BillServiceImpl::property(google::protobuf::RpcController* cntl_base,
 {
 	nrpc::Controller* cntl = static_cast<nrpc::Controller*>(cntl_base);
 	BillContext* context = static_cast<BillContext*>(cntl->service_context());
-	//PropertyManager* property_manager = context->property_manager;
-    //PropertyMsgAdaptor propertymsg_adaptor;
+	PropertyManager* property_manager = context->property_manager;
+    std::string gay = request->gay();
 	context->set_session_field("action", "PROPERTY");
-	context->set_session_field("gay", request->gay());
+	context->set_session_field("gay", gay);
+    response->set_last_index(property_manager->get_last_index());
 
+    // push
+    PropertyMsgAdaptor propertymsg_adaptor;
+    bool ret = true;
+    if (request->push_property_records().size() > 0) {
+        propertymsg_adaptor.set_push_property_records(&(request->push_property_records()));
+		if (!property_manager->push(gay, &propertymsg_adaptor)) {
+            ret = false;
+			response->set_error_msg("push property records failed");
+		}
+    }
+    response->set_status(ret);
+    context->set_session_field("push_records", propertymsg_adaptor.push_ids_str());
+	context->set_session_field("status", ret ? "true" : "false");
+    if (!ret) {
+        context->set_session_field("err_msg", response->error_msg());
+    }
+
+    // pull
+    if (request->has_begin_index()) {
+	    int begin_index = request->begin_index();
+	    int max_line = request->has_max_line() ? request->max_line() : 2;
+	    ::google::protobuf::RepeatedPtrField<PropertyRecord>* records = response->mutable_pull_property_records();
+        propertymsg_adaptor.set_pull_property_records(records);
+	    if (!property_manager->pull(gay, begin_index, max_line, &propertymsg_adaptor)) {
+	    	LOG(WARN, "pull %s's records failed", gay.c_str());
+	    }
+    }
     return done->Run();
 }
 
