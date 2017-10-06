@@ -183,14 +183,14 @@ void PropertyMsgAdaptor::pull_sqls(const EventLines& event_lines, SQLs* sqls) {
     if (in_pocket_ids.size() > 0) {
         in_pocket_ids[in_pocket_ids.length() - 1] = ')';
         std::string sql_str = _query_pocket_sql_prefix
-                + s_pocket_table_name + " where id in (" + in_pocket_ids;
+                + s_pocket_table_name + " where sid in (" + in_pocket_ids;
         SQL sql = std::make_pair(SQLType::SELECT, sql_str);
         sqls->push_back(sql);
     }
     if (in_assets_ids.size() > 0) {
         in_assets_ids[in_assets_ids.length() - 1] = ')';
         std::string sql_str = _query_assets_sql_prefix
-                + s_assets_table_name + " where id in (" + in_assets_ids;
+                + s_assets_table_name + " where sid in (" + in_assets_ids;
         SQL sql = std::make_pair(SQLType::SELECT, sql_str);
         sqls->push_back(sql);
     }
@@ -241,6 +241,7 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
                 continue;
             }
             PropertyRecord_PocketRecord* pocket_record = record->mutable_pocket_record();
+            pocket_record->set_sid(sid);
             pocket_record->set_year(atoi(record_line["year"].c_str()));
             pocket_record->set_month(atoi(record_line["month"].c_str()));
             pocket_record->set_comments(record_line["comments"]);
@@ -260,6 +261,7 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
                 continue;
             }
             PropertyRecord_AssetsRecord* assets_record = record->mutable_assets_record();
+            assets_record->set_sid(sid);
             assets_record->set_year(atoi(record_line["year"].c_str()));
             assets_record->set_month(atoi(record_line["month"].c_str()));
             assets_record->set_day(atoi(record_line["day"].c_str()));

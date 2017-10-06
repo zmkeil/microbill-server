@@ -111,3 +111,75 @@ TEST(BillMsgAdaptorTest, test_billmsg_adaptor_pull_sqls)
     ASSERT_STREQ("select id, year, month, day, pay_earn, gay, comments, cost, is_deleted from "
             "bills where id in ('zmkeil_2016_03_182','jxj_2016_03_32','jxj_2016_03_32')", sql.second.c_str());
 }
+
+TEST(BillMsgAdaptorTest, test_billmsg_adaptor_set_pull_records)
+{
+    microbill::BillMsgAdaptor billmsg_adaptor;
+
+    // init event_lines
+	microbill::EventLines event_lines;
+    microbill::EventLine event_line;
+    std::string ev_items[6] = {"1", "zmkeil_2016_03_182", "0", "jxj_2016_03_32", "1", "jxj_2016_03_32"};
+    for (unsigned int i = 0; i < 6; ++i) {
+        if (i % 2 == 0 && event_line.size() > 0) {
+            event_lines.push_back(event_line);
+            event_line.clear();
+        }
+        event_line.push_back(ev_items[i]);
+    }
+    if (event_line.size() > 0) {
+        event_lines.push_back(event_line);
+    }
+
+    // init record_lines
+    microbill::RecordLines record_lines;
+    microbill::RecordLine record_line;
+
+	record_line["id"] = "zmkeil_2016_03_182";
+    record_line["year"] = "2016";
+    record_line["month"] = "3";
+    record_line["day"] = "24";
+    record_line["pay_earn"] = "0";
+    record_line["gay"] = "zmkeil";
+    record_line["comments"] = "breakfast";
+    record_line["cost"] = "9";
+    record_line["is_deleted"] = "0";
+    record_lines.push_back(record_line);
+    record_line.clear();
+
+	record_line["id"] = "jxj_2016_03_32";
+    record_line["year"] = "2016";
+    record_line["month"] = "3";
+    record_line["day"] = "8";
+    record_line["pay_earn"] = "0";
+    record_line["gay"] = "jxj";
+    record_line["comments"] = "buy two shoes";
+    record_line["cost"] = "168";
+    record_line["is_deleted"] = "0";
+    record_lines.push_back(record_line);
+    record_line.clear();
+
+    // check set_pull_records
+    ::google::protobuf::RepeatedPtrField<microbill::Record> pull_bill_records;
+    billmsg_adaptor.set_pull_bill_records(&pull_bill_records);
+    billmsg_adaptor.set_pull_records(event_lines, record_lines);
+    ASSERT_EQ(2, pull_bill_records.size());
+
+    const microbill::Record& record1 = pull_bill_records.Get(0);
+    ASSERT_STREQ("zmkeil_2016_03_182", record1.id().c_str());
+    ASSERT_EQ(microbill::Record::UPDATE, record1.type());
+    ASSERT_EQ(2016, record1.year());
+    ASSERT_EQ(3, record1.month());
+    ASSERT_EQ(24, record1.day());
+    ASSERT_EQ(0, record1.pay_earn());
+    ASSERT_STREQ("zmkeil", record1.gay().c_str());
+    ASSERT_STREQ("breakfast", record1.comments().c_str());
+    ASSERT_EQ(9, record1.cost());
+    ASSERT_EQ(0, record1.is_deleted());
+
+    const microbill::Record& record2 = pull_bill_records.Get(1);
+    ASSERT_STREQ("jxj_2016_03_32", record2.id().c_str());
+    ASSERT_EQ(microbill::Record::NEW, record2.type());
+    ASSERT_STREQ("buy two shoes", record2.comments().c_str());
+    ASSERT_EQ(168, record2.cost());
+}

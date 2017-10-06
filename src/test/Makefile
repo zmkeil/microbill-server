@@ -48,6 +48,7 @@ PROTO=
 objs=test_mysql_client.o \
 	 test_event_handler.o \
 	 test_billmsg_adaptor.o \
+	 test_propertymsg_adaptor.o \
 	 test_pp_operator.o \
 	 test_bill_manager.o \
 	 client.o
@@ -55,6 +56,7 @@ objs=test_mysql_client.o \
 testbin=test_mysql_client \
 		test_event_handler \
 		test_billmsg_adaptor \
+		test_propertymsg_adaptor \
 		test_pp_operator \
 		test_bill_manager \
 		client
@@ -108,6 +110,10 @@ test_db_helper:test_db_helper.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
 test_billmsg_adaptor:test_billmsg_adaptor.o
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+
+test_propertymsg_adaptor:test_propertymsg_adaptor.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 

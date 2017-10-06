@@ -3,6 +3,7 @@
 *.pb.cc
 src/libmicrobill.a
 src/test/test_billmsg_adaptor
+src/test/test_propertymsg_adaptor
 src/test/test_mysql_client
 src/test/test_event_handler
 src/test/test_pp_operator
