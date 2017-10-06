@@ -1,5 +1,5 @@
-#ifndef APP_MICROBILL_USER_MANAGER_H
-#define APP_MICROBILL_USER_MANAGER_H
+#ifndef APP_MICROBILL_BILL_MANAGER_H
+#define APP_MICROBILL_BILL_MANAGER_H
 
 #include <hash_map>
 #include <google/protobuf/repeated_field.h>

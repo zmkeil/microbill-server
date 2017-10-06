@@ -39,8 +39,8 @@ LDFLAGS=-g -lgtest -lgtest_main -lprotobuf -lpthread -lssl -lcrypto -ldl -lmysql
 
 ######### files #########################################
 
-PROTO=../proto/bill \
-	  ../proto/bill_config
+PROTO=bill \
+	  bill_config
 
 objs=pp_operator.o \
 	 event_handler.o \
@@ -48,6 +48,8 @@ objs=pp_operator.o \
 	 mysql_client.o \
 	 billmsg_adaptor.o \
 	 bill_manager.o \
+	 propertymsg_adaptor.o \
+	 property_manager.o \
 	 util.o \
 	 bill.pb.o \
 	 bill_config.pb.o \
@@ -78,14 +80,14 @@ pb_c:
 	do \
 		if [ -f $$pb.pb.cc ]; then \
 			timeold=`stat $$pb.pb.cc | grep -i Modify`; \
-			timenew=`stat $$pb.proto | grep -i Modify`; \
-			if [ timenew -gt timeold ]; then \
-				echo "protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto"; \
-				( protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto ) || exit 1; \
+			timenew=`stat ../proto/$$pb.proto | grep -i Modify`; \
+			if [ "$$timenew" \> "$$timeold" ]; then \
+				echo "proto update: protoc --cpp_out=./ --proto_path=../proto/ ../proto/$$pb.proto"; \
+				( protoc --cpp_out=./ --proto_path=../proto/ ../proto/$$pb.proto ) || exit 1; \
 			fi \
 		else \
-			echo "protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto"; \
-			( protoc --cpp_out=./ --proto_path=../proto/ $$pb.proto ) || exit 1; \
+			echo "proto new: protoc --cpp_out=./ --proto_path=../proto/ ../proto/$$pb.proto"; \
+			( protoc --cpp_out=./ --proto_path=../proto/ ../proto/$$pb.proto ) || exit 1; \
 		fi \
 	done
 
