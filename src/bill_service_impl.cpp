@@ -112,6 +112,8 @@ void BillServiceImpl::property(google::protobuf::RpcController* cntl_base,
 	    	LOG(WARN, "pull %s's records failed", gay.c_str());
 	    }
     }
+    context->set_session_field("pull_records", propertymsg_adaptor.pull_ids_str());
+
     return done->Run();
 }
 

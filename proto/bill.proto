@@ -128,7 +128,7 @@ message PropertyResponse {
 }
 
 service BillService {
-	rpc update(BillRequest) returns (BillResponse);	
+	rpc update(BillRequest) returns (BillResponse);
 
 	rpc property(PropertyRequest) returns (PropertyResponse);
 }

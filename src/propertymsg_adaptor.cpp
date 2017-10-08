@@ -11,7 +11,7 @@ namespace microbill {
 std::string PropertyMsgAdaptor::s_pocket_table_name = "unkown";
 std::string PropertyMsgAdaptor::s_assets_table_name = "unkown";
 
-static PropertyRecord_AssetsRecord::StoreAddr s_store_addr_value[8] = {
+PropertyRecord_AssetsRecord::StoreAddr s_store_addr_value[8] = {
     PropertyRecord_AssetsRecord_StoreAddr_ZM_EBAO,
     PropertyRecord_AssetsRecord_StoreAddr_ZM_FUND,
     PropertyRecord_AssetsRecord_StoreAddr_ZM_TBJ,
@@ -22,7 +22,7 @@ static PropertyRecord_AssetsRecord::StoreAddr s_store_addr_value[8] = {
     PropertyRecord_AssetsRecord_StoreAddr_JXJ_SZYH
 };
 
-static PropertyRecord_AssetsRecord::FlowType s_flow_type_value[5] = {
+PropertyRecord_AssetsRecord::FlowType s_flow_type_value[5] = {
     PropertyRecord_AssetsRecord_FlowType_STORE,
     PropertyRecord_AssetsRecord_FlowType_INTEREST,
     PropertyRecord_AssetsRecord_FlowType_DRAW,
@@ -212,7 +212,6 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
         action_map[key] = (event_line[0] == "0" ? PropertyRecord::NEW : PropertyRecord::UPDATE);
     }
     for (auto record_line : record_lines) {
-        PropertyRecord* record = _pull_property_records->Add();
         // sid
         if (record_line.find("sid") == record_line.end()) {
             continue;
@@ -221,20 +220,19 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
         // property_type
         PropertyRecord_PropertyType property_type = (record_line.find("store_addr") != record_line.end() ?
                 PropertyRecord::FIXED_ASSETS : PropertyRecord::POCKET_MONEY);
-        record->set_property_type(property_type);
         // key ==> action
         std::string key = (property_type == PropertyRecord::FIXED_ASSETS ? "a_" : "p_") + sid;
-        if (action_map.find(key) != action_map.end()) {
-            record->set_type(action_map[key]);
-        } else {
-            // never happen
-            record->set_type(PropertyRecord::NEW);
-        }
+        PropertyRecord_Type action_type =
+                (action_map.find(key) != action_map.end()) ? action_map[key] : PropertyRecord::NEW;
+
+        PropertyRecord* record = _pull_property_records->Add();
+        record->set_type(action_type);
+        record->set_property_type(property_type);
 
         if (property_type == PropertyRecord::POCKET_MONEY) {
             if (record_line["year"] == "" ||
                     record_line["month"] == "" ||
-                    record_line["comments"] == "" ||
+                    //record_line["comments"] == "" ||
                     record_line["money"] == "" ||
                     record_line["is_deleted"] == "") {
                 LOG(WARN, "bad pocket record sid = %s", sid.c_str());
@@ -244,9 +242,10 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
             pocket_record->set_sid(sid);
             pocket_record->set_year(atoi(record_line["year"].c_str()));
             pocket_record->set_month(atoi(record_line["month"].c_str()));
-            pocket_record->set_comments(record_line["comments"]);
+            //pocket_record->set_comments(record_line["comments"]);
             pocket_record->set_money(atoi(record_line["money"].c_str()));
             pocket_record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
+            LOG(WARN, "good pocket record sid = %s", sid.c_str());
         }
         else if (property_type == PropertyRecord::FIXED_ASSETS) {
             if (record_line["year"] == "" ||

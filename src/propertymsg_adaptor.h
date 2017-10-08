@@ -13,6 +13,9 @@ namespace microbill {
 typedef PropertyRecord_PocketRecord PocketRecord;
 typedef PropertyRecord_AssetsRecord AssetsRecord;
 
+extern PropertyRecord_AssetsRecord::StoreAddr s_store_addr_value[8];
+extern PropertyRecord_AssetsRecord::FlowType s_flow_type_value[5];
+
 class PropertyMsgAdaptor : public MsgAdaptor {
 
 public:
