@@ -76,9 +76,10 @@ int main(int argc, char* argv[])
 	microbill::PropertyRequest prequest;
 	prequest.set_gay(gay);
 
+
+    //--------------------- bill -----------------//
 	nrpc::Controller cntl;
 	microbill::BillResponse response;
-
 	for (int i = 0; i < 3; ++i) {
 		microbill::Record* record = request.mutable_push_records()->Add();
 		record->set_type(microbill::Record::NEW);
@@ -119,7 +120,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
+
     //--------------------- property -----------------//
+    // 1. get last event index
 	nrpc::Controller cntl1;
 	microbill::PropertyResponse presponse;
     stub.property(&cntl1, &prequest, &presponse, NULL);
@@ -131,6 +134,7 @@ int main(int argc, char* argv[])
     }
 	std::cout << "self's property last index: " << presponse.last_index() << std::endl;
 
+    // 2. push 4 property records
     std::stringstream ss;
     int p_index = presponse.last_index() + 1;
     auto push_record = prequest.mutable_push_property_records();
@@ -177,8 +181,9 @@ int main(int argc, char* argv[])
         std::cout << "push precords success" << std::endl;
     }
 
+    // 3. pull 5 property records
     prequest.set_begin_index(2);
-    prequest.set_max_line(100);
+    prequest.set_max_line(5);
     prequest.mutable_push_property_records()->Clear();
 	nrpc::Controller cntl3;
     microbill::PropertyResponse presponse3;
