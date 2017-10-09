@@ -71,11 +71,14 @@ int main(int argc, char* argv[])
 	}
 
 	microbill::BillService_Stub stub(&channel);
-	nrpc::Controller cntl;
 	microbill::BillRequest request;
+	request.set_gay(gay);
+	microbill::PropertyRequest prequest;
+	prequest.set_gay(gay);
+
+	nrpc::Controller cntl;
 	microbill::BillResponse response;
 
-	request.set_gay(gay);
 	for (int i = 0; i < 3; ++i) {
 		microbill::Record* record = request.mutable_push_records()->Add();
 		record->set_type(microbill::Record::NEW);
@@ -118,9 +121,7 @@ int main(int argc, char* argv[])
 
     //--------------------- property -----------------//
 	nrpc::Controller cntl1;
-	microbill::PropertyRequest prequest;
 	microbill::PropertyResponse presponse;
-	prequest.set_gay(gay);
     stub.property(&cntl1, &prequest, &presponse, NULL);
     if (cntl1.Failed()) {
         LOG(ERROR, "%s, property error: \"%s\"", gay.c_str(), cntl1.ErrorText().c_str());
@@ -164,17 +165,31 @@ int main(int argc, char* argv[])
         a_record->set_store_addr_op(microbill::s_store_addr_value[it.store_addr_op]);
         a_record->set_is_deleted(it.is_deleted);
     }
-    prequest.set_begin_index(1);
 	nrpc::Controller cntl2;
     microbill::PropertyResponse presponse2;
     stub.property(&cntl2, &prequest, &presponse2, NULL);
     if (cntl2.Failed()) {
-        LOG(ERROR, "%s, property error: \"%s\"", gay.c_str(), cntl2.ErrorText().c_str());
+        LOG(ERROR, "%s, push property error: \"%s\"", gay.c_str(), cntl2.ErrorText().c_str());
     }
     if (!presponse2.status()) {
         LOG(ERROR, "push precords error: \"%s\"", presponse2.has_error_msg() ? presponse2.error_msg().c_str() : "unkown");
+    } else {
+        std::cout << "push precords success" << std::endl;
     }
-    auto pull_record = presponse2.pull_property_records();
+
+    prequest.set_begin_index(2);
+    prequest.set_max_line(100);
+    prequest.mutable_push_property_records()->Clear();
+	nrpc::Controller cntl3;
+    microbill::PropertyResponse presponse3;
+    stub.property(&cntl3, &prequest, &presponse3, NULL);
+    if (cntl3.Failed()) {
+        LOG(ERROR, "%s, pull property error: \"%s\"", gay.c_str(), cntl3.ErrorText().c_str());
+    }
+    if (!presponse3.status()) {
+        LOG(ERROR, "push precords error: \"%s\"", presponse3.has_error_msg() ? presponse3.error_msg().c_str() : "unkown");
+    }
+    auto pull_record = presponse3.pull_property_records();
     int pull_size = pull_record.size();
     for (int i = 0; i < pull_size; i++) {
         auto record = pull_record.Get(i);

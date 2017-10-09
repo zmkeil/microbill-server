@@ -242,7 +242,9 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
             pocket_record->set_sid(sid);
             pocket_record->set_year(atoi(record_line["year"].c_str()));
             pocket_record->set_month(atoi(record_line["month"].c_str()));
-            //pocket_record->set_comments(record_line["comments"]);
+            if (record_line["comments"] != "") {
+                pocket_record->set_comments(record_line["comments"]);
+            }
             pocket_record->set_money(atoi(record_line["money"].c_str()));
             pocket_record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
             LOG(WARN, "good pocket record sid = %s", sid.c_str());
@@ -269,6 +271,7 @@ void PropertyMsgAdaptor::set_pull_records(const EventLines& event_lines,
             assets_record->set_money(atoi(record_line["money"].c_str()));
             assets_record->set_store_addr_op(s_store_addr_value[atoi(record_line["store_addr_op"].c_str())]);
             assets_record->set_is_deleted(atoi(record_line["is_deleted"].c_str()));
+            LOG(WARN, "good assets record sid = %s", sid.c_str());
         }
     }
 }

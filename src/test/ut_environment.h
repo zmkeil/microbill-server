@@ -49,6 +49,8 @@ public:
 		ofs.close();
 		ofs.open("./data/jxj_events.txt", std::ios::out|std::ios::trunc);
 		ofs.close();
+		ofs.open("./data/property_events.txt", std::ios::out|std::ios::trunc);
+		ofs.close();
 		ofs.open("./data/test_events.txt", std::ios::out|std::ios::trunc);
 		ofs.close();
 	}

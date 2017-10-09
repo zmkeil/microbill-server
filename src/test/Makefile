@@ -51,6 +51,7 @@ objs=test_mysql_client.o \
 	 test_propertymsg_adaptor.o \
 	 test_pp_operator.o \
 	 test_bill_manager.o \
+	 test_property_manager.o \
 	 client.o
 
 testbin=test_mysql_client \
@@ -59,6 +60,7 @@ testbin=test_mysql_client \
 		test_propertymsg_adaptor \
 		test_pp_operator \
 		test_bill_manager \
+		test_property_manager \
 		client
 
 .PHONY:all
@@ -122,6 +124,10 @@ test_pp_operator:test_pp_operator.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
 test_bill_manager:test_bill_manager.o
+	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
+
+test_property_manager:test_property_manager.o
 	@echo "[[1;32;40mCOMAKE:BUILD[0m][Target:'[1;32;40m$@[0m']"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBPATH) $^ -o $@ $(LDFLAGS)
 
